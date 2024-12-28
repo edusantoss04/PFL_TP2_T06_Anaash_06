@@ -1,43 +1,75 @@
-:- initialization(main).
-
-% Predicado principal que será chamado na inicialização
-main :-
-    print_menu,
-    read_choice(Choice),
-    handle_choice(Choice).
-
-% Imprime o menu do jogo
-print_menu :-
+% Função principal para configurar o jogo
+configure_game(GameConfig) :-
+    write('==============================\n'),
+    write('   Welcome to the Game Setup   \n'),
+    write('==============================\n'),
     nl,
-    write('****************************'), nl,
-    write('*        Anaash            *'), nl,
-    write('****************************'), nl,
-    write('* 1. Novo Jogo             *'), nl,
-    write('* 2. Ver Regras            *'), nl,
-    write('* 3. Sair                  *'), nl,
-    write('****************************'), nl,
-    write('Escolha uma opcao (1-3): ').
+    choose_game_type(GameType),
+    choose_board_size(BoardSize),
+    choose_difficulty(Difficulty),
+    GameConfig = (GameType, BoardSize, Difficulty),
+    write('==============================\n'),
+    write('    Game Setup Complete!       \n'),
+    write('==============================\n'),
+    nl,
+    nl,
+    write('Game Configuration: '), 
+    write(GameConfig),   % Exibe o conteúdo da estrutura game_config
+    nl.
 
-% Lê a escolha do usuário
-read_choice(Choice) :-
-    read(Choice).
+% Função para escolher o tipo de jogo
+choose_game_type(GameType) :-
+    nl,
+    write('==============================\n'),
+    write('   Choose Game Type           \n'),
+    write('==============================\n'),
+    write('1) Human vs Human (H/H)\n'),
+    write('2) Human vs Computer (H/PC)\n'),
+    write('3) Computer vs Human (PC/H)\n'),
+    write('4) Computer vs Computer (PC/PC)\n'),
+    repeat,
+    read_menu_option(1 , 4 , Option),
+    game_type_from_option(Option, GameType),
+    nl.
 
-% Trata a escolha do usuário
-handle_choice(1) :-
-    nl, write('Iniciando um novo jogo...'), nl,
-    % Aqui você pode chamar predicados para iniciar o jogo
-    halt.
-handle_choice(2) :-
-    nl, write('Regras do jogo:'), nl,
-    write('1. O jogo é jogado em um tabuleiro de 6x6.'), nl,
-    write('2. Dois jogadores, Vermelho e Azul, se revezam.'), nl,
-    write('3. Existem três tipos de movimentos: Posicional, Empilhamento e Captura.'), nl,
-    write('4. O objetivo é capturar todas as peças do adversário.'), nl,
-    % Após mostrar as regras, volta ao menu principal
-    main.
-handle_choice(3) :-
-    nl, write('Saindo do jogo. Ate a proxima!'), nl,
-    halt.
-handle_choice(_) :-
-    nl, write('Escolha invalida. Tente novamente.'), nl,
-    main.
+% Mapeia a opção para o tipo de jogo correspondente
+game_type_from_option(1, h_h).
+game_type_from_option(2, h_pc).
+game_type_from_option(3, pc_h).
+game_type_from_option(4, pc_pc).
+
+% Função para escolher o tamanho do tabuleiro
+choose_board_size(BoardSize) :-
+    nl,
+    write('==============================\n'),
+    write('   Choose Board Size          \n'),
+    write('==============================\n'),
+    write('1) 6x6\n'),
+    write('2) 8x8\n'),
+    write('3) 10x10\n'),
+    repeat,
+    read_menu_option(1, 3, Option),
+    board_size_from_option(Option, BoardSize),
+    nl.
+
+% Mapeia a opção para o tamanho do tabuleiro
+board_size_from_option(1, 6).
+board_size_from_option(2, 8).
+board_size_from_option(3, 10).
+
+% Função para escolher o nível de dificuldade (apenas para jogos com PC)
+choose_difficulty(Difficulty) :-
+    nl,
+    write('==============================\n'),
+    write('   Choose Difficulty Level    \n'),
+    write('==============================\n'),
+    write('1) Easy\n'),
+    write('2) Hard\n'),
+    repeat,
+    read_menu_option(1, 2, Option),
+    difficulty_from_option(Option, Difficulty),
+    nl.
+
+% Mapeia a opção para o nível de dificuldade
+difficulty_from_option(1, easy).
+difficulty_from_option(2, hard).
