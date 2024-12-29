@@ -1,3 +1,4 @@
+:- use_module(library(lists)).
 
 board(6, [[blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1],
@@ -113,16 +114,53 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
     replace(T, N1, X, R).  % Continua a busca recursivamente na cauda
 
 
-nth0(0, [X|_], X).
-nth0(N, [_|T], X) :-
-    N > 0,
-    N1 is N - 1,
-    nth0(N1, T, X).
-
 
 
 % para testar move(gameState([[blue-1, red-1], [red-1, blue-1]], blue), move(0, 0, 1, 0), gameState(NewBoard, NewPlayer)).
 
-% gameState(Board, player).
+% gameState(board, player).
 
 % gameConfig(GameType,SizeBoard, Dificulty).
+
+% para testar display_board(gameState(board(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]]),_)).
+
+display_board(gameState(board(BoardSize, Board), _)):-
+    print_header(BoardSize),
+    print_lines(Board, 0).
+    
+% Itera sobre cada linha do tabuleiro
+print_lines([], _).
+print_lines([Line|Rest], Index) :-
+    format('~d  | ', [Index]),
+    print_line(Line),
+    nl,
+    length(Line, Len),
+    print_separator(Len),
+    NextIndex is Index + 1,
+    print_lines(Rest, NextIndex).
+
+% Imprime uma linha específica
+print_line([]).
+print_line([Cell|Rest]) :-
+    format('~w  | ', [Cell]),
+    print_line(Rest).
+
+print_header(10):-
+    write('        0         1         2         3         4         5         6         7         8         9 \n').
+print_header(8):-
+    write('        0         1         2         3         4         5         6         7 \n').
+print_header(6):-
+    write('        0         1         2         3         4         5 \n').
+
+% Imprime uma linha separadora com base no comprimento
+print_separator(Length) :-
+    write('   +'),
+    print_dashes(Length),
+    nl.
+
+% Imprime um número específico de traços
+print_dashes(0) :- !.
+print_dashes(N) :-
+    write('---------+'),
+    N1 is N - 1,
+    print_dashes(N1).
