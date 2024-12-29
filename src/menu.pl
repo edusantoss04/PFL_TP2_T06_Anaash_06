@@ -25,18 +25,16 @@ choose_game_type(GameType) :-
     write('==============================\n'),
     write('1) Human vs Human (H/H)\n'),
     write('2) Human vs Computer (H/PC)\n'),
-    write('3) Computer vs Human (PC/H)\n'),
-    write('4) Computer vs Computer (PC/PC)\n'),
+    write('3) Computer vs Computer (PC/PC)\n'),
     repeat,
-    read_menu_option(1 , 4 , Option),
+    read_menu_option(1 , 3 , Option),
     game_type_from_option(Option, GameType),
     nl.
 
 % Mapeia a opção para o tipo de jogo correspondente
 game_type_from_option(1, h_h).
 game_type_from_option(2, h_pc).
-game_type_from_option(3, pc_h).
-game_type_from_option(4, pc_pc).
+game_type_from_option(3, pc_pc).
 
 % Função para escolher o tamanho do tabuleiro
 choose_board_size(BoardSize) :-
