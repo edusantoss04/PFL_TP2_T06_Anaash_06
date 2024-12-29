@@ -29,7 +29,7 @@ board(10, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, 
            [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
            [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
 
-move(gameState(Board, Player, _, _, _, _), move(Row, Col, ToRow, ToCol), gameState(NewBoard, NewPlayer, _, _, _, _)) :-
+move(gameState(BoardSize,Board, Player, _, _, _, _), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, _, _, _, _)) :-
     % Trocar o jogador
     next_player(Player, NewPlayer),
 
@@ -42,13 +42,19 @@ move(gameState(Board, Player, _, _, _, _), move(Row, Col, ToRow, ToCol), gameSta
 
     % Obter o conteúdo da célula de destino
     nth0(ToRow, Board, ToOldRow),
-    nth0(ToCol, ToOldRow, TargetPiece-TargetSize),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
 
     % Verificar se o movimento é válido
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
 
     % Mover a peça
     move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard).
+
+
+% Função auxiliar para obter o conteúdo da célula de destino
+get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
+    nth0(ToCol, ToOldRow, TargetPiece-TargetSize).  % Caso a célula não seja vazia
+get_target_piece(_, _, empty, 0).  % Caso a célula seja vazia
 
 % Trocar de jogador
 next_player(blue, red).
@@ -116,15 +122,15 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
 
 
 
-% para testar move(gameState([[blue-1, red-1], [red-1, blue-1]], blue, _, _, _, _), move(0, 0, 1, 0), gameState(NewBoard, NewPlayer, _, _, _, _)).
+% para testar move(gameState(6,[[blue-1, empty], [red-1, blue-1]], blue, _, _, _, _), (0-0, 0-1), gameState(6,NewBoard, NewPlayer, _, _, _, _)).
 
 % gameState(board, player, GameType, RedType, BlueType, Level).
 
 % gameConfig(GameType,SizeBoard, Dificulty).
 
-% para testar display_game(gameState(board(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]]), _, _, _, _, _)).
+% para testar display_game(gameState(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]], _, _, _, _, _)).
 
-display_game(gameState(board(BoardSize, Board), _, _, _, _, _)):-
+display_game(gameState(BoardSize, Board, _, _, _, _, _)):-
     print_header(BoardSize),
     print_lines(Board, 0).
     
@@ -166,10 +172,10 @@ print_dashes(N) :-
     print_dashes(N1).
 
 
-% testar game_over(gameState([[red-2, blue-1, red-1, red-1, red-1, red-1],[red-1, red-1, red-1, red-1, red-1, red-1]],_,_,_,_,_), Winner).
+% testar game_over(gameState(6,[[red-2, blue-1, red-1, red-1, red-1, red-1],[red-1, red-1, red-1, red-1, red-1, red-1]],_,_,_,_,_), Winner).
 
 % Caso base: game over se todas as peças são da mesma cor.
-game_over(gameState(Board, _, _, _, _,_), Winner) :-
+game_over(gameState(BoardSize,Board, _, _, _, _,_), Winner) :-
     flatten(Board, FlatList),           % Achatar a lista de listas em uma lista única.
     exclude(=(empty), FlatList, Pieces), % Remover todas as posições 'empty'.
     same_color(Pieces, Winner).         % Verificar se todas as peças têm a mesma cor.
