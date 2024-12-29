@@ -36,17 +36,33 @@ map_difficulty(empty,0).
 
 
 
-
 % choose_move(+GameState, -Move).
-choose_move(gameState(BoardSize,Board,red, GameType, human ,BlueType, Level), Move):-
-    get_move(red,Move).
-    
-choose_move(gameState(BoardSize,Board,blue, GameType, RedType , human, Level), Move):-
-    get_move(blue,Move).
+choose_move(gameState(BoardSize, Board, red, GameType, human, BlueType, Level), Move) :-
+    repeat,  % Inicia a repetição
+    get_move(red, Move),  % Solicita o movimento
+    valid_move(gameState(BoardSize, Board, red, GameType, human, BlueType, Level), Move),  % Verifica se o movimento é válido
+    !.  % Interrompe a repetição se o movimento for válido
 
-get_move(Player, Move):-
+choose_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level), Move) :-
+    repeat,  % Inicia a repetição
+    get_move(blue, Move),  % Solicita o movimento
+    valid_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level), Move),  % Verifica se o movimento é válido
+    !.  % Interrompe a repetição se o movimento for válido
+
+% Função para obter o movimento do jogador
+get_move(Player, Move) :-
     write(Player),
-    write(',  choose your move (RowI-ColI,RowF-ColF): '),nl,
+    write(', choose your move (RowI-ColI,RowF-ColF): '), nl,
     read(Move).
+
+% Função para verificar se o movimento é válido
+valid_move(GameState, Move) :-
+    move(GameState, Move, _),  % Tenta realizar o movimento
+    !.  % Se o movimento for válido, interrompe o repeat
+valid_move(_, _) :-
+    write('Invalid move. Please try again.'), nl,
+    fail.  % Se o movimento for inválido, força a repetição
+
+
     
 

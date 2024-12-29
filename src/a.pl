@@ -42,13 +42,19 @@ move(gameState(BoardSize,Board, Player, _, _, _, _), (Row-Col,ToRow-ToCol), game
 
     % Obter o conteúdo da célula de destino
     nth0(ToRow, Board, ToOldRow),
-    nth0(ToCol, ToOldRow, TargetPiece-TargetSize),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
 
     % Verificar se o movimento é válido
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
 
     % Mover a peça
     move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard).
+
+
+% Função auxiliar para obter o conteúdo da célula de destino
+get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
+    nth0(ToCol, ToOldRow, TargetPiece-TargetSize).  % Caso a célula não seja vazia
+get_target_piece(_, _, empty, 0).  % Caso a célula seja vazia
 
 % Trocar de jogador
 next_player(blue, red).
