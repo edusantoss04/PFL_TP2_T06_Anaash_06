@@ -1,5 +1,6 @@
 :- use_module(library(lists)).
-:- use_module(library(ansi_term)).
+:- use_module(library(random)).
+
 
 board(6, [[blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1],
@@ -30,7 +31,7 @@ board(10, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, 
            [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
            [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
 
-move(gameState(BoardSize,Board, Player, _, _, _, _), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, _, _, _, _)) :-
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level)) :-
     % Trocar o jogador
     next_player(Player, NewPlayer),
 
@@ -132,6 +133,7 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
 % para testar display_game(gameState(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]], _, _, _, _, _)).
 
 display_game(gameState(BoardSize, Board, _, _, _, _, _)):-
+    nl,
     print_header(BoardSize),
     print_lines(Board, 0).
     
@@ -262,3 +264,9 @@ adjacent_position(BoardSize, Row, Col, ToRow, ToCol) :-
 
 
 % valid_moves(gameState(2, [[empty, blue-1],[red-5, empty]],blue,_,_,_,_), Moves).
+
+
+display_bot_move((Row-Col, ToRow-ToCol)):-
+    format('The blue bot moved from (~d, ~d) to (~d, ~d).~n', [Row, Col, ToRow, ToCol]).
+
+

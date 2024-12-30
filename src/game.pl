@@ -14,6 +14,7 @@ game_cycle(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level))
     congratulate(Winner).
 
 game_cycle(GameState):-
+    nl,
     choose_move(GameState, Move),
     move(GameState, Move, NewGameState),
     display_game(NewGameState), !,
@@ -48,6 +49,16 @@ choose_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level), 
     get_move(blue, Move),  % Solicita o movimento
     valid_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level), Move),  % Verifica se o movimento é válido
     !.  % Interrompe a repetição se o movimento for válido
+
+choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1), Move) :-
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1), Moves),
+    random_member(Move, Moves), 
+    display_bot_move(Move), !.
+
+choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 1), Move) :-
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1), Moves),
+    random_member(Move, Moves), 
+    display_bot_move(Move), !.
 
 % Função para obter o movimento do jogador
 get_move(Player, Move) :-
