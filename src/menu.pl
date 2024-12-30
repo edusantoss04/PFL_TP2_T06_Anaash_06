@@ -6,7 +6,7 @@ configure_game(GameConfig) :-
     nl,
     choose_game_type(GameType),
     choose_board_size(BoardSize),
-    choose_difficulty(Difficulty),
+    handle_difficulty(GameType, Difficulty),
     GameConfig = (GameType, BoardSize, Difficulty),
     write('==============================\n'),
     write('    Game Setup Complete!       \n'),
@@ -14,8 +14,13 @@ configure_game(GameConfig) :-
     nl,
     nl,
     write('Game Configuration: '), 
-    write(GameConfig),   % Exibe o conteúdo da estrutura game_config
+    write(GameConfig),   % Exibe o conteúdo da configuração
     nl.
+
+
+handle_difficulty(h_h, empty):- !.
+handle_difficulty(GameType, Difficulty) :-  
+    choose_difficulty(Difficulty). 
 
 % Função para escolher o tipo de jogo
 choose_game_type(GameType) :-
