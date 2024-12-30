@@ -53,7 +53,7 @@ move(gameState(BoardSize,Board, Player, _, _, _, _), (Row-Col,ToRow-ToCol), game
 
 % Função auxiliar para obter o conteúdo da célula de destino
 get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
-    nth0(ToCol, ToOldRow, TargetPiece-TargetSize).  % Caso a célula não seja vazia
+    nth0(ToCol, ToOldRow, TargetPiece-TargetSize), !.  % Caso a célula não seja vazia
 get_target_piece(_, _, empty, 0).  % Caso a célula seja vazia
 
 % Trocar de jogador
@@ -69,7 +69,7 @@ valid_direction(_,_,_,_):- fail.
 
 % Verificar se o movimento é válido
 valid_move(Piece, Size, empty, _, Player) :-
-    Piece == Player.  % A peça deve pertencer ao jogador
+    Piece == Player, !.  % A peça deve pertencer ao jogador
 valid_move(Piece, Size, TargetPiece, TargetSize, Player) :-
     Piece == Player,  % A peça pertence ao jogador
     valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player).
@@ -122,7 +122,7 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
 
 
 
-% para testar move(gameState(6,[[blue-1, empty], [red-1, blue-1]], blue, _, _, _, _), (0-0, 0-1), gameState(6,NewBoard, NewPlayer, _, _, _, _)).
+% para testar move(gameState(6,[[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _), (0-0, 0-1), gameState(6,NewBoard, NewPlayer, _, _, _, _)).
 
 % gameState(board, player, GameType, RedType, BlueType, Level).
 
@@ -203,3 +203,42 @@ flatten([H|T], FlatList) :-
 flatten([H|T], [H|TFlat]) :-
     \+ is_list(H),
     flatten(T, TFlat).
+
+
+get_cell(Row, Col, Board, Piece-Size):-
+    nth0(Row, Board, CurrentRow),
+    nth0(Col, CurrentRow, Piece-Size).
+
+
+
+% Retorna todos os movimentos válidos para um dado jogador
+valid_moves(gameState(BoardSize, Board, Player, _, _, _, _), Moves) :-
+    Limit is BoardSize - 1,
+    findall(
+        (Row-Col, ToRow-ToCol),
+        (
+            between(0, Limit, Row),
+            between(0, Limit, Col),
+            get_cell(Row, Col, Board, Piece-Size),
+            Piece == Player,
+            adjacent_position(BoardSize, Row, Col, ToRow, ToCol),
+            nth0(ToRow, Board, ToOldRow),
+            get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
+            valid_move(Piece, Size, TargetPiece, TargetSize, Player)
+        ),
+        AllMoves
+    ),
+    sort(AllMoves, Moves).
+
+% Retorna as posições adjacentes a uma célula dentro dos limites do tabuleiro
+adjacent_position(BoardSize, Row, Col, ToRow, ToCol) :-
+    member((DRow, DCol), [(0, 1), (1, 0), (0, -1), (-1, 0)]),
+    ToRow is Row + DRow,
+    ToCol is Col + DCol,
+    ToRow >= 0, ToRow < BoardSize,
+    ToCol >= 0, ToCol < BoardSize.
+
+
+
+
+% valid_moves(gameState(2, [[empty, blue-1],[red-5, empty]],blue,_,_,_,_), Moves).
