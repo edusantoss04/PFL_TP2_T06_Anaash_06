@@ -42,7 +42,7 @@ move(gameState(BoardSize,Board, Player, _, _, _, _), (Row-Col,ToRow-ToCol), game
 
     % Obter o conteúdo da célula de destino
     nth0(ToRow, Board, ToOldRow),
-    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize), !,
 
     % Verificar se o movimento é válido
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
@@ -77,9 +77,9 @@ valid_move(Piece, Size, TargetPiece, TargetSize, Player) :-
 % Condições de movimento
 valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player) :-
     (Player == blue, TargetPiece == red, Size >= TargetSize);  % Blue pode capturar Red
-    (Player == blue, TargetPiece == blue, Size >= TargetSize);  % Blue pode mover para outra célula azul
+    (Player == blue, TargetPiece == blue, Size =< TargetSize);  % Blue pode mover para outra célula azul
     (Player == red, TargetPiece == blue, Size >= TargetSize);  % Red pode capturar Blue
-    (Player == red, TargetPiece == red, Size >= TargetSize).   % Red pode mover para outra célula vermelha
+    (Player == red, TargetPiece == red, Size =< TargetSize).   % Red pode mover para outra célula vermelha
 
 % Mover a peça no tabuleiro
 move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard) :-
