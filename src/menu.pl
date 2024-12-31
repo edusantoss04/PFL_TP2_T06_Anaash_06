@@ -17,10 +17,15 @@ configure_game(GameConfig) :-
     write(GameConfig),   % Exibe o conteúdo da configuração
     nl.
 
-
-handle_difficulty(h_h, empty):- !.
-handle_difficulty(GameType, Difficulty) :-  
-    choose_difficulty(Difficulty). 
+% Determina como configurar a dificuldade com base no tipo de jogo
+handle_difficulty(h_h, empty) :- !. % Nenhuma dificuldade para Human vs Human
+handle_difficulty(h_pc, Difficulty) :- % Apenas um nível de dificuldade para Human vs Computer
+    choose_difficulty(Difficulty).
+handle_difficulty(pc_pc, DifficultyRed-DifficultyBlue) :- % Dois níveis de dificuldade para Computer vs Computer
+    write('Configure difficulty for Red bot:\n'),
+    choose_difficulty(DifficultyRed),
+    write('Configure difficulty for Blue bot:\n'),
+    choose_difficulty(DifficultyBlue).
 
 % Função para escolher o tipo de jogo
 choose_game_type(GameType) :-
@@ -47,18 +52,18 @@ choose_board_size(BoardSize) :-
     write('==============================\n'),
     write('   Choose Board Size          \n'),
     write('==============================\n'),
-    write('1) 6x6\n'),
-    write('2) 8x8\n'),
-    write('3) 10x10\n'),
+    write('1) 4x4\n'),
+    write('2) 6x6\n'),
+    write('3) 8x8\n'),
     repeat,
     read_menu_option(1, 3, Option),
     board_size_from_option(Option, BoardSize),
     nl.
 
 % Mapeia a opção para o tamanho do tabuleiro
-board_size_from_option(1, 6).
-board_size_from_option(2, 8).
-board_size_from_option(3, 10).
+board_size_from_option(1, 4).
+board_size_from_option(2, 6).
+board_size_from_option(3, 8).
 
 % Função para escolher o nível de dificuldade (apenas para jogos com PC)
 choose_difficulty(Difficulty) :-
