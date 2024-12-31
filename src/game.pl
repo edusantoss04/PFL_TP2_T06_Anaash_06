@@ -19,13 +19,6 @@ game_cycle(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level))
     game_over(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level), Winner), !,
     congratulate(Winner).
 
-game_cycle(GameState):-
-    nl,
-    choose_move(GameState, skip),  % Jogador não tem movimentos válidos
-    skip_player(GameState, NewGameState),
-    !,
-    game_cycle(NewGameState).  % Continua para o próximo turno
-
 % game_cycle(gameState(2, [[blue-3,blue-3],[blue-3,red-1]],red, h_h, human, human,0)).
 % Caso em que há um movimento válido
 game_cycle(GameState) :-
@@ -61,13 +54,6 @@ map_single_difficulty(empty, 0).
 
 
 % choose_move(+GameState, -Move).
-
-% Caso sem movimentos válidos
-choose_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level), skip) :-
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level), Moves),
-    Moves = [],  % Lista de movimentos está vazia
-    format('Player ~w has no valid moves. Skipping turn./n', [Player]),
-    !.
 % Red é human 
 choose_move(gameState(BoardSize, Board, red, GameType, human, BlueType, Level), Move) :-
     repeat,  % Inicia a repetição
@@ -172,5 +158,3 @@ congratulate(Winner) :-
 
 skip_player(gameState(BoardSize, Board, red, GameType, RedType, BlueType, Level), gameState(BoardSize, Board, blue, GameType, RedType, BlueType, Level)).
 skip_player(gameState(BoardSize, Board, blue, GameType, RedType, BlueType, Level), gameState(BoardSize, Board, red, GameType, RedType, BlueType, Level)).
-
-game_cycle(gameState(2, [[blue-3,blue-3],[blue-3,red-1]],red, h_h, human, human,0)).
