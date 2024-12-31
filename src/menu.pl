@@ -47,18 +47,21 @@ choose_board_size(BoardSize) :-
     write('==============================\n'),
     write('   Choose Board Size          \n'),
     write('==============================\n'),
-    write('1) 6x6\n'),
-    write('2) 8x8\n'),
-    write('3) 10x10\n'),
+    write('1) 4x4\n'),
+    write('2) 6x6\n'),
+    write('3) 8x8\n'),
+    write('4) 10x10\n'),
     repeat,
-    read_menu_option(1, 3, Option),
+    read_menu_option(1, 4, Option),
     board_size_from_option(Option, BoardSize),
     nl.
 
 % Mapeia a opção para o tamanho do tabuleiro
-board_size_from_option(1, 6).
-board_size_from_option(2, 8).
-board_size_from_option(3, 10).
+board_size_from_option(1, 4).
+board_size_from_option(2, 6).
+board_size_from_option(3, 8).
+board_size_from_option(4, 10).
+
 
 % Função para escolher o nível de dificuldade (apenas para jogos com PC)
 choose_difficulty(Difficulty) :-

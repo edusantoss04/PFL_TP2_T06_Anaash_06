@@ -60,20 +60,27 @@ choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 1), Mov
     random_member(Move, Moves), 
     display_bot_move(Move), !.
 
-% Função para obter o movimento do jogador
 get_move(Player, Move) :-
     write(Player),
     write(', choose your move (RowI-ColI,RowF-ColF): '), nl,
-    read(Move).
+    catch(read(Move), _, (write('Invalid input. Please try again.'), nl, fail)),
+    !.
 
 % Função para verificar se o movimento é válido
 valid_move(GameState, Move) :-
     move(GameState, Move, _),  % Tenta realizar o movimento
     !.  % Se o movimento for válido, interrompe o repeat
-valid_move(_, _) :-
+valid_move(_) :-
     write('Invalid move. Please try again.'), nl,
     fail.  % Se o movimento for inválido, força a repetição
 
 
     
 
+congratulate(Winner) :-
+    nl,
+    format('~`=t~40|~n', []),  % Linha de separação
+    format('   Congratulations, ~w!~n', [Winner]),
+    format('   You are the winner!~n', []),
+    format('~`=t~40|~n', []),
+    halt . % Linha de separação
