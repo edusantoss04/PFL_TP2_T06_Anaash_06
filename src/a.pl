@@ -1,6 +1,10 @@
 :- use_module(library(lists)).
 :- use_module(library(random)).
 
+board(4, [[blue-1, red-1, blue-1, red-1],
+          [red-1, blue-1, red-1, blue-1],
+          [blue-1, red-1, blue-1, red-1],
+          [red-1, blue-1, red-1, blue-1]]).
 
 board(6, [[blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1],
@@ -19,17 +23,6 @@ board(8, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
 
-
-board(10, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
-           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1],
-           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
-           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1],
-           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
-           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1],
-           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
-           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1],
-           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
-           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
 
 move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level)) :-
     % Trocar o jogador

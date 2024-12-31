@@ -1,8 +1,14 @@
 :- consult(menu).
 :- consult(utils).
 :- consult(a).
+:- use_module(library(system), [now/1]).
+
+init_random_state :-
+    now(X),
+    setrand(X).
 
 play :-
+    init_random_state,
     configure_game(GameConfig),
     initial_state(GameConfig, GameState),
     display_game(GameState),
@@ -104,7 +110,7 @@ choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2), Move
     display_bot_move(Move),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
-
+        
 % Função para obter o movimento do jogador
 get_move(Player, Move) :-
     write(Player),
