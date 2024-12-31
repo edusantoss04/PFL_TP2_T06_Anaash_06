@@ -78,6 +78,24 @@ choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 1), Mov
     random_member(Move, Moves), 
     display_bot_move(Move), !.
 
+
+
+% Blue é bot level 2 mas red é human
+choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2), Move) :-
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2), Moves),
+    bot_move(gameState(BoardSize, Board, Player, h_pc, human, bot, 2), Move),  % Usa a função bot_move para escolher o melhor movimento
+    display_bot_move(Move),  % Exibe o movimento do bot
+    !.  % Interrompe a repetição quando o movimento for feito
+
+% Red é bot level 2 mas blue é human
+choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 2), Move) :-
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2), Moves),
+    bot_move(gameState(BoardSize, Board, Player, h_pc, bot, human, 2), Move),  % Usa a função bot_move para escolher o melhor movimento
+    display_bot_move(Move),  % Exibe o movimento do bot
+    !.  % Interrompe a repetição quando o movimento for feito
+
+
+
 % Bot vs Bot (necessário devido à forma como está implementado o LevelRed-LevelBlue)
 
 choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 1-LevelBlue), Move) :-
@@ -98,7 +116,7 @@ choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-1), Move
 choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue), Move) :-
     repeat,  % Inicia a repetição até um movimento válido
     valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue), Moves),  % Obtém os movimentos válidos
-    choose_best_move(Moves, Move),  % Implementa lógica para escolher o melhor movimento baseado no nível 2
+    bot_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue), Move),  % Usa a função bot_move para escolher o melhor movimento
     display_bot_move(Move),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
@@ -106,9 +124,10 @@ choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue), Move
 choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2), Move) :-
     repeat,  % Inicia a repetição até um movimento válido
     valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2), Moves),  % Obtém os movimentos válidos
-    choose_best_move(Moves, Move),  % Implementa lógica para escolher o melhor movimento baseado no nível 2
+    bot_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2), Move),  % Usa a função bot_move para escolher o melhor movimento
     display_bot_move(Move),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
+
 
         
 % Função para obter o movimento do jogador

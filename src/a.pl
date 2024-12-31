@@ -1,5 +1,6 @@
 :- use_module(library(lists)).
 :- use_module(library(random)).
+:- use_module(library(sort)).
 
 board(4, [[blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1],
@@ -279,3 +280,94 @@ display_bot_move((Row-Col, ToRow-ToCol)):-
 
 % greedy algorithm
 
+
+
+
+% Função para gerar e avaliar os movimentos válidos do bot.
+bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level), (BestRow-BestCol, BestToRow-BestToCol)) :-
+    % Gerar todos os movimentos válidos
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level), ValidMoves),
+    
+    % Avaliar todos os movimentos e associar a pontuação
+    findall((Score, (Row-Col, ToRow-ToCol)), 
+        (member((Row-Col, ToRow-ToCol), ValidMoves), 
+         evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), Score)), 
+        EvaluatedMoves),
+    
+    
+    findall(Score, member((Score, _), EvaluatedMoves), Scores),
+    my_max_list(Scores, MaxScore),
+    
+   
+    findall((MaxScore, (Row-Col, ToRow-ToCol)),
+        member((MaxScore, (Row-Col, ToRow-ToCol)), EvaluatedMoves),
+        BestMoves),
+    
+    % Escolher um movimento aleatório entre os melhores
+    random_member((_, (BestRow-BestCol, BestToRow-BestToCol)), BestMoves).
+
+
+% Avaliar um movimento específico
+evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), Score) :-
+    % Obter a peça e o tamanho na célula de origem
+    get_cell(Row, Col, Board, Piece-Size),
+    
+    % Obter a peça e o tamanho na célula de destino
+    nth0(ToRow, Board, ToOldRow),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
+    
+    % Verifica e calcula a pontuação de empilhamento
+    stacking_move(Piece, Player, TargetPiece, TargetSize, Size, StackingScore),
+    
+    % Se não for empilhamento, verifica a pontuação de captura
+    capture_move(Piece, Player, TargetPiece, TargetSize, Size, CaptureScore),
+    
+    % Se não for empilhamento nem captura, verifica a pontuação posicional
+    positional_move(Piece, Player, TargetPiece, TargetSize, PositionalScore),
+    
+    % A pontuação final será a maior entre as pontuações geradas
+    my_max_list([StackingScore, CaptureScore, PositionalScore], Score).
+
+% Predicado de movimento de empilhamento (mesma cor)
+stacking_move(Piece, Player, TargetPiece, TargetSize, Size, Score) :-
+    Piece == Player,  % Se a peça de origem é do jogador
+    TargetPiece == Player,  % Se a peça de destino também é do jogador
+    Score is Size + TargetSize.  % Soma o tamanho da pilha no destino
+
+stacking_move(_, _, _, _, _, Score) :-
+    Score = 0.  % Caso contrário, o movimento não é de empilhamento
+
+% Predicado de movimento de captura (oponente)
+capture_move(Piece, Player, TargetPiece, TargetSize, Size, Score) :-
+    Piece == Player,  % Se a peça de origem é do jogador
+    TargetPiece \= Player,  % Se a peça de destino é do adversário
+    TargetPiece \= empty,  % A peça de destino não pode ser vazia
+    Score is Size + TargetSize.  % Soma o tamanho da pilha do adversário
+
+capture_move(_, _, _, _, _, Score) :-
+    Score = 0.  % Caso contrário, o movimento não é uma captura
+
+% Predicado para movimentos posicionais (sem empilhamento nem captura)
+positional_move(Piece, Player, TargetPiece, TargetSize, Score) :-
+    Piece == Player,  % Se a peça de origem é do jogador
+    (TargetPiece == empty; TargetPiece == Player),  % Se a célula de destino está vazia ou tem peça do jogador
+    Score = 0.  % Não há pontuação adicional para movimentos posicionais
+
+positional_move(_, _, _, _, Score) :-
+    Score = 0. 
+
+% Teste de execução
+% bot_move(gameState(6, [[blue-2, red-1, blue-1], [red-2, blue-1, red-1], [blue-1, red-1, blue-1]], blue, _, _, _, _), Move).
+
+
+
+my_max_list([X], X).
+
+% Recursive case: the maximum of a list is the maximum between the head and the maximum of the tail
+my_max_list([Head|Tail], Max) :-
+    my_max_list(Tail, TailMax),  % Find the maximum of the tail
+    Max is max(Head, TailMax).  % Max is the greater of Head and TailMax
+
+% Helper predicate to find the max between two numbers
+max(X, Y, X) :- X >= Y.
+max(X, Y, Y) :- X < Y.
