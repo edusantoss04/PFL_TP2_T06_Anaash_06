@@ -158,12 +158,23 @@ print_cell(empty) :-
     reset_color.
 
 % Imprime uma célula com a cor e número apropriados
+
 print_cell(Color-Number) :-
     print_color(Color),
-    write('   '),               % Espaço inicial para o número
-    write(Number),            % Escreve o número
-    write('   '),         % 8 espaços após o número para garantir que a célula ocupe o mesmo espaço
+    number_chars(Number, Digits),  % Converte o número para uma lista de caracteres
+    length(Digits, Length),        % Calcula a quantidade de dígitos
+    Spaces is 4 - Length,          % Calcula o número de espaços necessários antes do número
+    write('   '),                  
+    write(Number),                 
+    print_spaces(Spaces),                  
     reset_color.
+
+print_spaces(0).
+print_spaces(N) :-
+    N > 0,
+    write(' '),
+    N1 is N - 1,
+    print_spaces(N1).
 
 % Define a cor para azul
 print_color(blue) :-
@@ -185,11 +196,13 @@ reset_color :-
     write('\e[0m').  % Reseta para a cor padrão do terminal
 
 print_header(10):-
-    write('    0       1       2       3       4       5       6       7       8       9 \n').
+    write('      0      1      2      3      4      5      6      7      8      9 \n').
 print_header(8):-
-    write(' 0       1       2       3       4       5       6       7 \n').
+    write('      0      1      2      3      4      5      6      7 \n').
 print_header(6):-
     write('      0      1      2      3      4      5 \n').
+print_header(4):-
+    write('      0      1      2      3 \n').
 
 
 
@@ -269,4 +282,7 @@ adjacent_position(BoardSize, Row, Col, ToRow, ToCol) :-
 display_bot_move((Row-Col, ToRow-ToCol)):-
     format('The blue bot moved from (~d, ~d) to (~d, ~d).~n', [Row, Col, ToRow, ToCol]).
 
+
+
+% greedy algorithm
 

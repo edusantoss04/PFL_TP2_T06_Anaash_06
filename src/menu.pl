@@ -17,10 +17,15 @@ configure_game(GameConfig) :-
     write(GameConfig),   % Exibe o conteúdo da configuração
     nl.
 
-
-handle_difficulty(h_h, empty):- !.
-handle_difficulty(GameType, Difficulty) :-  
-    choose_difficulty(Difficulty). 
+% Determina como configurar a dificuldade com base no tipo de jogo
+handle_difficulty(h_h, empty) :- !. % Nenhuma dificuldade para Human vs Human
+handle_difficulty(h_pc, Difficulty) :- % Apenas um nível de dificuldade para Human vs Computer
+    choose_difficulty(Difficulty).
+handle_difficulty(pc_pc, DifficultyRed-DifficultyBlue) :- % Dois níveis de dificuldade para Computer vs Computer
+    write('Configure difficulty for Red bot:\n'),
+    choose_difficulty(DifficultyRed),
+    write('Configure difficulty for Blue bot:\n'),
+    choose_difficulty(DifficultyBlue).
 
 % Função para escolher o tipo de jogo
 choose_game_type(GameType) :-
