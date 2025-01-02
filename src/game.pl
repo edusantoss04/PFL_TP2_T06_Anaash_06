@@ -15,8 +15,8 @@ play :-
     game_cycle(GameState).
 
 
-game_cycle(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level)):-
-    game_over(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level), Winner), !,
+game_cycle(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level,DiagonalRule)):-
+    game_over(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level,DiagonalRule), Winner), !,
     congratulate(Winner).
 
 % game_cycle(gameState(2, [[blue-3,blue-3],[blue-3,red-1]],red, h_h, human, human,0)).
