@@ -23,15 +23,19 @@ board(8, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1],
           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
-move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level)) :-
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
     next_player(Player, NewPlayer).
 
-move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level)) :-
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,DiagonalRule), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level,UpdatedDiagonalRule)) :-
     % Trocar o jogador
     next_player(Player, NewPlayer),
 
+    % Obter o valor de DiagonalRule correspondente ao jogador atual
+    get_player_diagonal_permission(Player, DiagonalRule, CanMoveDiagonally),
+
     % Validar a direção
-    valid_direction(Row, Col, ToRow, ToCol),
+    % valid_direction(Row, Col, ToRow, ToCol),
+    valid_move_in_direction(Row, Col, ToRow, ToCol, CanMoveDiagonally),
 
     % Obter a peça a mover
     nth0(Row, Board, OldRow),
@@ -45,8 +49,10 @@ move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), (Ro
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
 
     % Mover a peça
-    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard).
+    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard),
 
+    % Atualizar o DiagonalRule, se necessário
+    update_diagonal_rule(Player, Row, Col, ToRow, ToCol, DiagonalRule, UpdatedDiagonalRule).
 
 % Função auxiliar para obter o conteúdo da célula de destino
 get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
@@ -57,12 +63,7 @@ get_target_piece(_, _, empty, 0).  % Caso a célula seja vazia
 next_player(blue, red).
 next_player(red, blue).
 
-% Validar a direção do movimento (diagonal ou horizontal)
-valid_direction(Row, Col, Row, ToCol) :-
-    abs(Col - ToCol) =:= 1.
-valid_direction(Row, Col, ToRow, Col) :-
-    abs(Row - ToRow) =:= 1.
-valid_direction(_,_,_,_):- fail.
+
 
 % Verificar se o movimento é válido
 valid_move(Piece, Size, empty, _, Player) :-
@@ -120,6 +121,8 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
 
 
 % para testar move(gameState(6,[[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _), (0-0, 0-1), gameState(6,NewBoard, NewPlayer, _, _, _, _)).
+% move(gameState(6, [[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _, [1, 1]), (0-0, 0-1), gameState(6, NewBoard, NewPlayer, _, _, _, _, [1, 0])).
+
 
 % gameState(board, player, GameType, RedType, BlueType, Level).
 
@@ -127,7 +130,7 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
 
 % para testar display_game(gameState(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]], _, _, _, _, _)).
 
-display_game(gameState(BoardSize, Board, _, _, _, _, _)):-
+display_game(gameState(BoardSize, Board, _, _, _, _, _,_)):-
     nl,
     print_header(BoardSize),
     print_lines(Board, 0).
@@ -205,7 +208,7 @@ print_header(4):-
 % testar game_over(gameState(6,[[red-2, blue-1, red-1, red-1, red-1, red-1],[red-1, red-1, red-1, red-1, red-1, red-1]],_,_,_,_,_), Winner).
 
 % Caso base: game over se todas as peças são da mesma cor.
-game_over(gameState(BoardSize,Board, _, _, _, _,_), Winner) :-
+game_over(gameState(BoardSize,Board, _, _, _, _,_,_), Winner) :-
     flatten(Board, FlatList),           % Achatar a lista de listas em uma lista única.
     exclude(=(empty), FlatList, Pieces), % Remover todas as posições 'empty'.
     same_color(Pieces, Winner).         % Verificar se todas as peças têm a mesma cor.
@@ -242,7 +245,7 @@ get_cell(Row, Col, Board, Piece-Size):-
 
 
 % Retorna todos os movimentos válidos para um dado jogador
-valid_moves(gameState(BoardSize, Board, Player, _, _, _, _), Moves) :-
+valid_moves(gameState(BoardSize, Board, Player, _, _, _, _,_), Moves) :-
     Limit is BoardSize - 1,
     findall(
         (Row-Col, ToRow-ToCol),
@@ -285,9 +288,9 @@ display_bot_move((Row-Col, ToRow-ToCol)):-
 
 
 % Função para gerar e avaliar os movimentos válidos do bot.
-bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level), (BestRow-BestCol, BestToRow-BestToCol)) :-
+bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (BestRow-BestCol, BestToRow-BestToCol)) :-
     % Gerar todos os movimentos válidos
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level), ValidMoves),
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), ValidMoves),
     
     % Avaliar todos os movimentos e associar a pontuação
     findall((Score, (Row-Col, ToRow-ToCol)), 
@@ -372,3 +375,46 @@ my_max_list([Head|Tail], Max) :-
 % Helper predicate to find the max between two numbers
 max(X, Y, X) :- X >= Y.
 max(X, Y, Y) :- X < Y.
+
+
+
+% Função para obter a permissão de movimento diagonal do jogador
+get_player_diagonal_permission(red, [1, _], 1).
+get_player_diagonal_permission(blue, [_, 1], 1).
+get_player_diagonal_permission(_, _, 0).  % Caso contrário, o movimento diagonal é restrito
+
+% Valida movimentos diagonais se o DiagonalRule permitir (CanMoveDiagonally = 1)
+valid_move_in_direction(Row, Col, ToRow, ToCol, 1) :-
+    isDiagonal(Row, Col, ToRow, ToCol),
+    valid_diagonal_move(Row, Col, ToRow, ToCol).
+
+% Valida movimentos horizontais ou verticais se o DiagonalRule não permitir (CanMoveDiagonally = 0)
+valid_move_in_direction(Row, Col, ToRow, ToCol, 0) :-
+    valid_direction(Row, Col, ToRow, ToCol).
+
+% Valida um movimento diagonal
+isDiagonal(Row, Col, ToRow, ToCol) :-
+    abs(Row - ToRow) =:= abs(Col - ToCol).
+
+% Verifica a validade de um movimento diagonal
+valid_diagonal_move(Row, Col, ToRow, ToCol) :-
+    abs(Row - ToRow) =:= 1,  % A distância precisa ser 1 nas duas direções
+    abs(Col - ToCol) =:= 1.
+
+% Valida movimentos horizontais ou verticais
+valid_direction(Row, Col, ToRow, Col) :-
+    abs(Row - ToRow) =:= 1.
+
+valid_direction(Row, Col, Row, ToCol) :-
+    abs(Col - ToCol) =:= 1.
+
+valid_direction(_, _, _, _) :- fail.  % Caso o movimento não seja válido
+
+update_diagonal_rule(_, Row, Col, ToRow, ToCol, DiagonalRule, DiagonalRule) :-
+    \+ isDiagonal(Row, Col, ToRow, ToCol), 
+    % Se não for diagonal, regra permanece inalterada
+    !.
+
+update_diagonal_rule(red, _, _, _, _, [_, BlueRule], [0, BlueRule]). % Vermelho jogou diagonal.
+update_diagonal_rule(blue, _, _, _, _, [RedRule, _], [RedRule, 0]). % Azul jogou diagonal.
+
