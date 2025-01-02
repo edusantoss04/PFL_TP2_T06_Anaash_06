@@ -23,6 +23,8 @@ print_menu_header(Header) :-
 handle_difficulty(h_h, empty) :- !. % Nenhuma dificuldade para Human vs Human
 handle_difficulty(h_pc, Difficulty) :- % Apenas um nível de dificuldade para Human vs Computer
     choose_difficulty(Difficulty).
+handle_difficulty(pc_h, Difficulty) :- % Apenas um nível de dificuldade para Human vs Computer
+    choose_difficulty(Difficulty).
 handle_difficulty(pc_pc, DifficultyRed-DifficultyBlue) :- % Dois níveis de dificuldade para Computer vs Computer
     print_menu_header('Configure Bot Difficulties'),
     write('Configure difficulty for Red bot:\n'),
@@ -36,17 +38,19 @@ choose_game_type(GameType) :-
     print_menu_header('Choose Game Type'),
     write('1) Human vs Human \n'),
     write('2) Human vs Computer \n'),
-    write('3) Computer vs Computer \n\n'),
+    write('3) Computer vs Human \n'),
+    write('4) Computer vs Computer \n\n'),
 
     repeat,
-    read_menu_option(1 , 3 , Option),
+    read_menu_option(1 , 4 , Option),
     game_type_from_option(Option, GameType),
     nl.
 
 % Mapeia a opção para o tipo de jogo correspondente
 game_type_from_option(1, h_h).
 game_type_from_option(2, h_pc).
-game_type_from_option(3, pc_pc).
+game_type_from_option(3, pc_h).
+game_type_from_option(4, pc_pc).
 
 % Função para escolher o tamanho do tabuleiro
 choose_board_size(BoardSize) :-
@@ -82,6 +86,7 @@ difficulty_from_option(2, hard).
 
 handle_enable_rule(pc_pc, [0,0]):- !.
 handle_enable_rule(h_pc, [0,0]):- !.
+handle_enable_rule(pc_h, [0,0]):- !.
 handle_enable_rule(h_h, DiagonalRule):-
     enable_rule(DiagonalRule).
 

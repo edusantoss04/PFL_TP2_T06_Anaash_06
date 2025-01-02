@@ -39,6 +39,7 @@ initial_state((GameType, BoardSize, Difficulty, DiagonalRule), gameState(BoardSi
 
 map_game_type(h_h, human , human).
 map_game_type(h_pc, human , bot).
+map_game_type(pc_h, bot, human).
 map_game_type(pc_pc, bot ,bot).
 
 map_difficulty(DifficultyRed-DifficultyBlue, LevelRed-LevelBlue) :-
