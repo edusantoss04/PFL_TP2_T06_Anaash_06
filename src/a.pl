@@ -23,7 +23,8 @@ board(8, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1],
           [blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
-
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level)) :-
+    next_player(Player, NewPlayer).
 
 move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level)) :-
     % Trocar o jogador
