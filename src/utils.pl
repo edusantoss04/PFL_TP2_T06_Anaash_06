@@ -26,6 +26,16 @@ read_until_between(Min, Max, Value) :-
     between(Min, Max, Value),                
     !.                                     
 
+% Função auxiliar para obter o conteúdo da célula de destino
+get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
+    nth0(ToCol, ToOldRow, TargetPiece-TargetSize), !.  % Caso a célula não seja vazia
+get_target_piece(_, _, empty, 0).  % Caso a célula seja vazia
+
+% Trocar de jogador
+next_player(blue, red).
+next_player(red, blue).
+
+
 print_text_color(purple) :-
     write('\e[35m').  % Texto roxo
 print_text_color(cyan) :-
@@ -40,46 +50,6 @@ print_text_color(red) :-
     write('\e[31m').  % Texto vermelho
 print_text_color(white) :-
     write('\e[97m').  % Texto branco
-
-
-% Itera sobre cada linha do tabuleiro
-print_lines([], _).
-print_lines([Line|Rest], Index) :-
-    format('~d  ', [Index]),  % Número da linha antes da célula
-    print_line(Line),
-    nl,  % Nova linha após imprimir a linha inteira
-    NextIndex is Index + 1,
-    print_lines(Rest, NextIndex).
-
-% Imprime uma linha específica
-print_line([]).
-print_line([Cell|Rest]) :-
-    print_cell(Cell),
-    print_line(Rest).
-
-print_cell(empty) :-
-    write('\e[47m'),          % Fundo branco
-    write('       '),         % 8 espaços em branco para garantir que o espaço tenha 8 caracteres
-    reset_color.
-
-% Imprime uma célula com a cor e número apropriados
-
-print_cell(Color-Number) :-
-    print_color(Color),
-    number_chars(Number, Digits),  % Converte o número para uma lista de caracteres
-    length(Digits, Length),        % Calcula a quantidade de dígitos
-    Spaces is 4 - Length,          % Calcula o número de espaços necessários antes do número
-    write('   '),                  
-    write(Number),                 
-    print_spaces(Spaces),                  
-    reset_color.
-
-print_spaces(0).
-print_spaces(N) :-
-    N > 0,
-    write(' '),
-    N1 is N - 1,
-    print_spaces(N1).
 
 % Define a cor para azul
 print_color(blue) :-
@@ -100,11 +70,60 @@ print_color(empty) :-
 reset_color :-
     write('\e[0m').  % Reseta para a cor padrão do terminal
 
-print_header(10):-
-    write('      0      1      2      3      4      5      6      7      8      9 \n').
-print_header(8):-
-    write('      0      1      2      3      4      5      6      7 \n').
-print_header(6):-
-    write('      0      1      2      3      4      5 \n').
-print_header(4):-
-    write('      0      1      2      3 \n').
+
+display_bot_move((Row-Col, ToRow-ToCol)):-
+    format('The blue bot moved from (~d, ~d) to (~d, ~d).~n', [Row, Col, ToRow, ToCol]).
+
+% Predicado que verifica se todas as peças têm a mesma cor (ignorando números).
+same_color([], _) :- fail.              % Falha se não houver peças (apenas 'empty').
+same_color([Color-_|T], Winner) :-      % Ignora o número e verifica apenas a cor.
+    maplist(has_same_color(Color), T),  % Verifica se todos os elementos têm a mesma cor.
+    Winner = Color.
+
+% Verifica se a peça tem a mesma cor (ignora números).
+has_same_color(Color, Color-_).
+
+get_cell(Row, Col, Board, Piece-Size):-
+    nth0(Row, Board, CurrentRow),
+    nth0(Col, CurrentRow, Piece-Size).
+
+% Substitui um elemento na posição [Row, Col] da matriz (board).
+replace([Row|T], 0, Col, X, [NewRow|T]) :-
+    replace(Row, Col, X, NewRow).  % Substitui na linha correspondente
+replace([H|T], Row, Col, X, [H|R]) :-
+    Row > 0,  % Se a linha não for a 0, percorre as outras linhas
+    Row1 is Row - 1,
+    replace(T, Row1, Col, X, R).  % Decrementa o índice da linha e continua com a cauda
+
+% Substitui um elemento na posição Col da lista (linha).
+replace([_|T], 0, X, [X|T]).  % Se a posição for 0, substitui o primeiro elemento pela X
+replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
+    N > 0,  % Se o índice for maior que 0
+    N1 is N - 1,  % Decrementa o índice
+    replace(T, N1, X, R).  % Continua a busca recursivamente na cauda
+
+
+% Caso base: uma lista vazia já está achatada.
+flatten([], []).
+
+% Se o primeiro elemento for uma lista, achatar recursivamente.
+flatten([H|T], FlatList) :-
+    is_list(H),
+    flatten(H, HFlat),
+    flatten(T, TFlat),
+    append(HFlat, TFlat, FlatList).
+
+% Se o primeiro elemento não for uma lista, apenas adicioná-lo ao resultado.
+flatten([H|T], [H|TFlat]) :-
+    \+ is_list(H),
+    flatten(T, TFlat).
+
+
+my_max_list([X], X).
+
+my_max_list([Head|Tail], Max) :-
+    my_max_list(Tail, TailMax), 
+    Max is max(Head, TailMax).  
+
+max(X, Y, X) :- X >= Y.
+max(X, Y, Y) :- X < Y.

@@ -1,7 +1,9 @@
+:- use_module(library(system), [now/1]).
+:- use_module(library(lists)).
+:- use_module(library(random)).
 :- consult(menu).
 :- consult(utils).
-:- consult(a).
-:- use_module(library(system), [now/1]).
+:- consult(board).
 
 init_random_state :-
     now(X),
@@ -137,7 +139,76 @@ choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, Diago
     !.  % Interrompe a repetição quando o movimento for feito
 
 
-        
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
+    next_player(Player, NewPlayer).
+
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,DiagonalRule), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level,UpdatedDiagonalRule)) :-
+    % Trocar o jogador
+    next_player(Player, NewPlayer),
+
+    % Obter o valor de DiagonalRule correspondente ao jogador atual
+    get_player_diagonal_permission(Player, DiagonalRule, CanMoveDiagonally),
+
+    % Validar a direção
+    % valid_direction(Row, Col, ToRow, ToCol),
+    valid_move_in_direction(Row, Col, ToRow, ToCol, CanMoveDiagonally),
+
+    % Obter a peça a mover
+    nth0(Row, Board, OldRow),
+    nth0(Col, OldRow, Piece-Size),
+
+    % Obter o conteúdo da célula de destino
+    nth0(ToRow, Board, ToOldRow),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize), !,
+
+    % Verificar se o movimento é válido
+    valid_move(Piece, Size, TargetPiece, TargetSize, Player),
+
+    % Mover a peça
+    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard),
+
+    % Atualizar o DiagonalRule, se necessário
+    update_diagonal_rule(Player, Row, Col, ToRow, ToCol, DiagonalRule, UpdatedDiagonalRule).
+
+
+% Verificar se o movimento é válido
+valid_move(Piece, Size, empty, _, Player) :-
+    Piece == Player, !.  % A peça deve pertencer ao jogador
+valid_move(Piece, Size, TargetPiece, TargetSize, Player) :-
+    Piece == Player,  % A peça pertence ao jogador
+    valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player).
+
+% Condições de movimento
+valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player) :-
+    (Player == blue, TargetPiece == red, Size >= TargetSize);  % Blue pode capturar Red
+    (Player == blue, TargetPiece == blue, Size =< TargetSize);  % Blue pode mover para outra célula azul
+    (Player == red, TargetPiece == blue, Size >= TargetSize);  % Red pode capturar Blue
+    (Player == red, TargetPiece == red, Size =< TargetSize).   % Red pode mover para outra célula vermelha
+
+% Mover a peça no tabuleiro
+move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard) :-
+    % Atualizar o tamanho usando a função update_size
+    update_size(Size, TargetPiece, TargetSize, NewSize),
+
+    % Atualizar a célula de origem (deve ser 'empty' após o movimento)
+    replace(Board, Row, Col, empty, TempBoard),
+
+    % Colocar a peça na nova posição com o novo tamanho
+    replace(TempBoard, ToRow, ToCol, Piece-NewSize, NewBoard).
+
+% Atualizar o tamanho da peça
+update_size(Size, empty, NewSize) :-
+    NewSize = Size.  % Se a célula de destino for vazia, não altera o tamanho.
+
+update_size(Size, TargetPiece, TargetSize, NewSize) :-
+    Piece \== TargetPiece,  % Se for uma peça adversária
+    NewSize is Size + TargetSize.
+
+update_size(Size, TargetPiece, TargetSize, NewSize) :-
+    Piece == TargetPiece,  % Se for uma peça do mesmo jogador
+    NewSize is Size + TargetSize.
+
+
 % Função para obter o movimento do jogador
 get_move(Player, Move) :-
     write(Player),
@@ -154,6 +225,157 @@ valid_move(_) :-
     fail.  % Se o movimento for inválido, força a repetição
 
 
+% Retorna todos os movimentos válidos para um dado jogador
+valid_moves(gameState(BoardSize, Board, Player, _, _, _, _,_), Moves) :-
+    Limit is BoardSize - 1,
+    findall(
+        (Row-Col, ToRow-ToCol),
+        (
+            between(0, Limit, Row),
+            between(0, Limit, Col),
+            get_cell(Row, Col, Board, Piece-Size),
+            Piece == Player,
+            adjacent_position(BoardSize, Row, Col, ToRow, ToCol),
+            nth0(ToRow, Board, ToOldRow),
+            get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
+            valid_move(Piece, Size, TargetPiece, TargetSize, Player)
+        ),
+        AllMoves
+    ),
+    sort(AllMoves, Moves).
+
+% Retorna as posições adjacentes a uma célula dentro dos limites do tabuleiro
+adjacent_position(BoardSize, Row, Col, ToRow, ToCol) :-
+    member((DRow, DCol), [(0, 1), (1, 0), (0, -1), (-1, 0)]),
+    ToRow is Row + DRow,
+    ToCol is Col + DCol,
+    ToRow >= 0, ToRow < BoardSize,
+    ToCol >= 0, ToCol < BoardSize.
+
+% valid_moves(gameState(2, [[empty, blue-1],[red-5, empty]],blue,_,_,_,_), Moves).
+
+
+% Função para gerar e avaliar os movimentos válidos do bot.
+bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (BestRow-BestCol, BestToRow-BestToCol)) :-
+    % Gerar todos os movimentos válidos
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), ValidMoves),
+    
+    % Avaliar todos os movimentos e associar a pontuação
+    findall((Score, (Row-Col, ToRow-ToCol)), 
+        (member((Row-Col, ToRow-ToCol), ValidMoves), 
+         evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), Score)), 
+        EvaluatedMoves),
+    
+    
+    findall(Score, member((Score, _), EvaluatedMoves), Scores),
+    my_max_list(Scores, MaxScore),
+    
+   
+    findall((MaxScore, (Row-Col, ToRow-ToCol)),
+        member((MaxScore, (Row-Col, ToRow-ToCol)), EvaluatedMoves),
+        BestMoves),
+    
+    % Escolher um movimento aleatório entre os melhores
+    random_member((_, (BestRow-BestCol, BestToRow-BestToCol)), BestMoves).
+
+
+% Avaliar um movimento específico
+evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), Score) :-
+    % Obter a peça e o tamanho na célula de origem
+    get_cell(Row, Col, Board, Piece-Size),
+    
+    % Obter a peça e o tamanho na célula de destino
+    nth0(ToRow, Board, ToOldRow),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
+    
+    % Verifica e calcula a pontuação de empilhamento
+    stacking_move(Piece, Player, TargetPiece, TargetSize, Size, StackingScore),
+    
+    % Se não for empilhamento, verifica a pontuação de captura
+    capture_move(Piece, Player, TargetPiece, TargetSize, Size, CaptureScore),
+    
+    % Se não for empilhamento nem captura, verifica a pontuação posicional
+    positional_move(Piece, Player, TargetPiece, TargetSize, PositionalScore),
+    
+    % A pontuação final será a maior entre as pontuações geradas
+    my_max_list([StackingScore, CaptureScore, PositionalScore], Score).
+
+% Predicado de movimento de empilhamento (mesma cor)
+stacking_move(Piece, Player, TargetPiece, TargetSize, Size, Score) :-
+    Piece == Player,  % Se a peça de origem é do jogador
+    TargetPiece == Player,  % Se a peça de destino também é do jogador
+    Score is Size + TargetSize.  % Soma o tamanho da pilha no destino
+
+stacking_move(_, _, _, _, _, Score) :-
+    Score = 0.  % Caso contrário, o movimento não é de empilhamento
+
+% Predicado de movimento de captura (oponente)
+capture_move(Piece, Player, TargetPiece, TargetSize, Size, Score) :-
+    Piece == Player,  % Se a peça de origem é do jogador
+    TargetPiece \= Player,  % Se a peça de destino é do adversário
+    TargetPiece \= empty,  % A peça de destino não pode ser vazia
+    Score is Size + TargetSize.  % Soma o tamanho da pilha do adversário
+
+capture_move(_, _, _, _, _, Score) :-
+    Score = 0.  % Caso contrário, o movimento não é uma captura
+
+% Predicado para movimentos posicionais (sem empilhamento nem captura)
+positional_move(Piece, Player, TargetPiece, TargetSize, Score) :-
+    Piece == Player,  % Se a peça de origem é do jogador
+    (TargetPiece == empty; TargetPiece == Player),  % Se a célula de destino está vazia ou tem peça do jogador
+    Score = 0.  % Não há pontuação adicional para movimentos posicionais
+
+positional_move(_, _, _, _, Score) :-
+    Score = 0. 
+
+% Teste de execução
+% bot_move(gameState(6, [[blue-2, red-1, blue-1], [red-2, blue-1, red-1], [blue-1, red-1, blue-1]], blue, _, _, _, _), Move).
+
+% Função para obter a permissão de movimento diagonal do jogador
+get_player_diagonal_permission(red, [1, _], 1).
+get_player_diagonal_permission(blue, [_, 1], 1).
+get_player_diagonal_permission(_, _, 0).  % Caso contrário, o movimento diagonal é restrito
+
+% Valida movimentos diagonais se o DiagonalRule permitir (CanMoveDiagonally = 1)
+valid_move_in_direction(Row, Col, ToRow, ToCol, 1) :-
+    isDiagonal(Row, Col, ToRow, ToCol),
+    valid_diagonal_move(Row, Col, ToRow, ToCol).
+
+% Valida movimentos horizontais ou verticais se o DiagonalRule não permitir (CanMoveDiagonally = 0)
+valid_move_in_direction(Row, Col, ToRow, ToCol, 0) :-
+    valid_direction(Row, Col, ToRow, ToCol).
+
+% Valida um movimento diagonal
+isDiagonal(Row, Col, ToRow, ToCol) :-
+    abs(Row - ToRow) =:= abs(Col - ToCol).
+
+% Verifica a validade de um movimento diagonal
+valid_diagonal_move(Row, Col, ToRow, ToCol) :-
+    abs(Row - ToRow) =:= 1,  % A distância precisa ser 1 nas duas direções
+    abs(Col - ToCol) =:= 1.
+
+% Valida movimentos horizontais ou verticais
+valid_direction(Row, Col, ToRow, Col) :-
+    abs(Row - ToRow) =:= 1.
+
+valid_direction(Row, Col, Row, ToCol) :-
+    abs(Col - ToCol) =:= 1.
+
+valid_direction(_, _, _, _) :- fail.  % Caso o movimento não seja válido
+
+update_diagonal_rule(_, Row, Col, ToRow, ToCol, DiagonalRule, DiagonalRule) :-
+    \+ isDiagonal(Row, Col, ToRow, ToCol), 
+    % Se não for diagonal, regra permanece inalterada
+    !.
+
+update_diagonal_rule(red, _, _, _, _, [_, BlueRule], [0, BlueRule]). % Vermelho jogou diagonal.
+update_diagonal_rule(blue, _, _, _, _, [RedRule, _], [RedRule, 0]). % Azul jogou diagonal.
+
+game_over(gameState(BoardSize,Board, _, _, _, _,_,_), Winner) :-
+    flatten(Board, FlatList),           % Achatar a lista de listas em uma lista única.
+    exclude(=(empty), FlatList, Pieces), % Remover todas as posições 'empty'.
+    same_color(Pieces, Winner).         % Verificar se todas as peças têm a mesma cor.
+
 congratulate(Winner) :-
     nl,
     format('~`=t~40|~n', []),  % Linha de separação
@@ -161,3 +383,10 @@ congratulate(Winner) :-
     format('   You are the winner!~n', []),
     format('~`=t~40|~n', []),
     halt . % Linha de separação   
+
+% para testar move(gameState(6,[[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _), (0-0, 0-1), gameState(6,NewBoard, NewPlayer, _, _, _, _)).
+% move(gameState(6, [[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _, [1, 1]), (0-0, 0-1), gameState(6, NewBoard, NewPlayer, _, _, _, _, [1, 0])).
+% gameState(board, player, GameType, RedType, BlueType, Level).
+% gameConfig(GameType,SizeBoard, Dificulty).
+% para testar display_game(gameState(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]], _, _, _, _, _)).
+% testar game_over(gameState(6,[[red-2, blue-1, red-1, red-1, red-1, red-1],[red-1, red-1, red-1, red-1, red-1, red-1]],_,_,_,_,_), Winner).
