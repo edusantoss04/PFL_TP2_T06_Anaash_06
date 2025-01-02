@@ -6,8 +6,9 @@ configure_game(GameConfig) :-
     nl,
     choose_game_type(GameType),
     choose_board_size(BoardSize),
+    handle_enable_rule(GameType, DiagonalRule),
     handle_difficulty(GameType, Difficulty),
-    GameConfig = (GameType, BoardSize, Difficulty),
+    GameConfig = (GameType, BoardSize, Difficulty, DiagonalRule),
     write('==============================\n'),
     write('    Game Setup Complete!       \n'),
     write('==============================\n'),
@@ -81,3 +82,24 @@ choose_difficulty(Difficulty) :-
 % Mapeia a opção para o nível de dificuldade
 difficulty_from_option(1, easy).
 difficulty_from_option(2, hard).
+
+handle_enable_rule(pc_pc, [0,0]):- !.
+handle_enable_rule(h_pc, [0,0]):- !.
+handle_enable_rule(h_h, DiagonalRule):-
+    enable_rule(DiagonalRule).
+
+enable_rule(DiagonalRule):-
+    nl,
+    write('==============================\n'),
+    write('           New rule           \n'),
+    write('==============================\n'),
+    write('1) enable rule\n'),
+    write('2) disable rule\n'),
+    repeat,
+    read_menu_option(1, 2, Option),
+    rule_option(Option, DiagonalRule),
+    nl.
+
+rule_option(1, [1, 1]).
+rule_option(2, [0, 0]).
+    
