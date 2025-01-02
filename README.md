@@ -13,21 +13,23 @@ for novice players, additional rules for expert players), and other aspects.
 ● Game Logic: Describe the main design decisions regarding the implementation of the game logic in
 Prolog (do not copy the source code). This section should have information on the following topics,
 among others:
-o Game Configuration Representation: describe the information required to represent the game
+  o Game Configuration Representation: describe the information required to represent the game
 configuration, how it is represented internally and how it is used by the initial_state/2 predicate.
-o Internal Game State Representation: describe the information required to represent the game
+  o Internal Game State Representation: describe the information required to represent the game
 state, how it is represented internally, including an indication of the meaning of each atom (i.e. how
 different pieces are represented). Include examples of representations of initial, intermediate, and
 final game states.
-o Move Representation: describe the information required to represent a move, and how it is
+  o Move Representation: describe the information required to represent a move, and how it is
 represented internally (e.g., the coordinates of a board location, and/or other information
 necessary to represent a move) and how it is used by the move/3 predicate.
 o User Interaction: briefly describe the game menu system, as well as how interaction with the user
 is performed, focusing on input validation (e.g., when reading a move).
+
 ● Conclusions: Conclusions about the work carried out, including limitations of the program (and known
 issues), as well as possible improvements (future developments roadmap).
 ● Bibliography: List of books, papers, web pages and other resources used during the development of the
 assignment. If you used tools such as ChatGPT, list the queries used.
+
 You can also include one or more imagesillustrating the execution of the game, showing initial, intermediate
 and final game states, and interaction with the game.
 The entire document should not exceed four pages (including images and references).
