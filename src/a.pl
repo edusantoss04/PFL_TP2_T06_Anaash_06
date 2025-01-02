@@ -26,7 +26,7 @@ board(8, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
 move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
     next_player(Player, NewPlayer).
 
-move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,DiagonalRule), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level,DiagonalRule)) :-
+move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,DiagonalRule), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level,UpdatedDiagonalRule)) :-
     % Trocar o jogador
     next_player(Player, NewPlayer),
 
@@ -35,7 +35,7 @@ move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,Diago
 
     % Validar a direção
     % valid_direction(Row, Col, ToRow, ToCol),
-    valid_move_in_direction(Row, Col, ToRow, ToCol, DiagonalRule),
+    valid_move_in_direction(Row, Col, ToRow, ToCol, CanMoveDiagonally),
 
     % Obter a peça a mover
     nth0(Row, Board, OldRow),
@@ -49,7 +49,10 @@ move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,Diago
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
 
     % Mover a peça
-    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard).
+    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard),
+
+    % Atualizar o DiagonalRule, se necessário
+    update_diagonal_rule(Player, Row, Col, ToRow, ToCol, DiagonalRule, UpdatedDiagonalRule).
 
 % Função auxiliar para obter o conteúdo da célula de destino
 get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
@@ -118,6 +121,8 @@ replace([H|T], N, X, [H|R]) :-  % Caso contrário, percorre a lista
 
 
 % para testar move(gameState(6,[[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _), (0-0, 0-1), gameState(6,NewBoard, NewPlayer, _, _, _, _)).
+% move(gameState(6, [[blue-2, blue-1], [red-1, blue-1]], blue, _, _, _, _, [1, 1]), (0-0, 0-1), gameState(6, NewBoard, NewPlayer, _, _, _, _, [1, 0])).
+
 
 % gameState(board, player, GameType, RedType, BlueType, Level).
 
@@ -404,4 +409,12 @@ valid_direction(Row, Col, Row, ToCol) :-
     abs(Col - ToCol) =:= 1.
 
 valid_direction(_, _, _, _) :- fail.  % Caso o movimento não seja válido
+
+update_diagonal_rule(_, Row, Col, ToRow, ToCol, DiagonalRule, DiagonalRule) :-
+    \+ isDiagonal(Row, Col, ToRow, ToCol), 
+    % Se não for diagonal, regra permanece inalterada
+    !.
+
+update_diagonal_rule(red, _, _, _, _, [_, BlueRule], [0, BlueRule]). % Vermelho jogou diagonal.
+update_diagonal_rule(blue, _, _, _, _, [RedRule, _], [RedRule, 0]). % Azul jogou diagonal.
 
