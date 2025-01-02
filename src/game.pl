@@ -263,7 +263,10 @@ bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level,
     % Avaliar todos os movimentos e associar a pontuação
     findall((Score, (Row-Col, ToRow-ToCol)), 
         (member((Row-Col, ToRow-ToCol), ValidMoves), 
-         evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), Score)), 
+         simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (Row-Col, ToRow-ToCol), NewGameState), % Simula o movimento
+         value(NewGameState, Player, Value),  % Avalia o novo estado do jogo com a função value
+         evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), MoveScore),  % Avalia o movimento
+         Score is Value + MoveScore),  % Combina o valor do estado do jogo com a pontuação do movimento
         EvaluatedMoves),
     
     
@@ -390,3 +393,65 @@ congratulate(Winner) :-
 % gameConfig(GameType,SizeBoard, Dificulty).
 % para testar display_game(gameState(6,[[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1],[blue-1, red-1, blue-1, red-1, blue-1, red-1],[red-1, blue-1, red-1, blue-1, red-1, blue-1]], _, _, _, _, _)).
 % testar game_over(gameState(6,[[red-2, blue-1, red-1, red-1, red-1, red-1],[red-1, red-1, red-1, red-1, red-1, red-1]],_,_,_,_,_), Winner).
+
+
+simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule),
+              (Row-Col, ToRow-ToCol),
+              gameState(BoardSize, NewBoard, Player, GameType, RedType, BlueType, Level, DiagonalRule)) :-
+    % Obter a peça e o tamanho na célula de origem
+    get_cell(Row, Col, Board, Piece-Size),
+
+    % Obter a peça e o tamanho na célula de destino (caso de captura ou empilhamento)
+    get_target_piece(ToRow, ToCol, TargetPiece, TargetSize),
+    
+    % Mover a peça de acordo com o movimento e atualizar o tamanho
+    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard).
+
+
+% Função que avalia o estado do jogo para o jogador (blue ou red)
+value(gameState(BoardSize, Board, Player, _, _, _, _, _), Player, Value) :-
+    next_player(Player,Opponent),
+    count_pieces(Board, Player, PlayerCount),
+    count_pieces(Board, Opponent, OpponentCount),
+    
+    Value is PlayerCount - OpponentCount.
+
+% Contar o número de peças de um jogador no tabuleiro
+count_pieces(Board, Player, TotalSize) :-
+    findall(Size, 
+            (member(Row, Board),               % Para cada linha no tabuleiro
+             member(Player-Size, Row)),        % Se a peça na célula for do jogador Player
+            Sizes),                            % Armazenar os tamanhos das peças encontradas
+    sumlist(Sizes, TotalSize). 
+
+% Definição do Tabuleiro para o teste
+test_value :-
+    Board = [
+        [blue-1, red-2, empty],
+        [red-1, blue-2, empty],
+        [empty, blue-2, red-1]
+    ],
+    GameState = gameState(3, Board, blue, _, _, _, _, _),  % Estado do jogo para o jogador 'blue'
+    value(GameState, blue, Value),  % Calcula o valor para o jogador 'blue'
+    format('Valor para o jogador blue: ~w~n', [Value]),  % Exibe o valor calculado
+    
+    GameStateRed = gameState(3, Board, red, _, _, _, _, _),  % Estado do jogo para o jogador 'red'
+    value(GameStateRed, red, ValueRed),  % Calcula o valor para o jogador 'red'
+    format('Valor para o jogador red: ~w~n', [ValueRed]).  % Exibe o valor calculado
+
+
+% Teste do predicado count_pieces/3
+test_count_pieces :-
+    Board = [
+        [blue-1, red-2, empty],
+        [red-1, blue-2, empty],
+        [empty, blue-2, red-1]
+    ],
+    
+    % Contar as peças do jogador 'blue'
+    count_pieces(Board, blue, BlueTotal),
+    format('Total de peças para blue: ~w~n', [BlueTotal]),
+
+    % Contar as peças do jogador 'red'
+    count_pieces(Board, red, RedTotal),
+    format('Total de peças para red: ~w~n', [RedTotal]).
