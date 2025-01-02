@@ -71,8 +71,8 @@ reset_color :-
     write('\e[0m').  % Reseta para a cor padrão do terminal
 
 
-display_bot_move((Row-Col, ToRow-ToCol)):-
-    format('The blue bot moved from (~d, ~d) to (~d, ~d).~n', [Row, Col, ToRow, ToCol]).
+display_bot_move((Row-Col, ToRow-ToCol), Bot):-
+    format('The ~w bot moved from (~d, ~d) to (~d, ~d).~n', [Bot, Row, Col, ToRow, ToCol]).
 
 % Predicado que verifica se todas as peças têm a mesma cor (ignorando números).
 same_color([], _) :- fail.              % Falha se não houver peças (apenas 'empty').

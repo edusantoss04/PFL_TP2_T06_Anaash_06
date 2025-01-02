@@ -80,13 +80,13 @@ choose_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level, D
 choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Move) :-
     valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Moves),
     random_member(Move, Moves), 
-    display_bot_move(Move), !.
+    display_bot_move(Move, Player), !.
 
 % Red é bot mas blue é human
 choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 1, DiagonalRule), Move) :-
     valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Moves),
     random_member(Move, Moves), 
-    display_bot_move(Move), !.
+    display_bot_move(Move, Player), !.
 
 
 
@@ -94,14 +94,14 @@ choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 1, Diag
 choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Move) :-
     valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Moves),
     bot_move(gameState(BoardSize, Board, Player, h_pc, human, bot, 2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move),  % Exibe o movimento do bot
+    display_bot_move(Move, Player),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
 % Red é bot level 2 mas blue é human
 choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 2, DiagonalRule), Move) :-
     valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Moves),
     bot_move(gameState(BoardSize, Board, Player, h_pc, bot, human, 2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move),  % Exibe o movimento do bot
+    display_bot_move(Move, Player),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
 
@@ -112,14 +112,14 @@ choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 1-LevelBlue, Diago
     repeat,  % Inicia a repetição até um movimento válido
     valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 1-LevelBlue, DiagonalRule), Moves),  % Obtém os movimentos válidos
     random_member(Move, Moves),  % Seleciona aleatoriamente um movimento válido
-    display_bot_move(Move),  % Exibe o movimento do bot
+    display_bot_move(Move, red),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
 choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-1, DiagonalRule), Move) :-
     repeat,  % Inicia a repetição até um movimento válido
     valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-1, DiagonalRule), Moves),  % Obtém os movimentos válidos
     random_member(Move, Moves),  % Seleciona aleatoriamente um movimento válido
-    display_bot_move(Move),  % Exibe o movimento do bot
+    display_bot_move(Move, blue),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
 % Bot vs Bot (red) - Nível 2 
@@ -127,7 +127,7 @@ choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, Diago
     repeat,  % Inicia a repetição até um movimento válido
     valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Moves),  % Obtém os movimentos válidos
     bot_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move),  % Exibe o movimento do bot
+    display_bot_move(Move, red),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
 % Bot vs Bot (blue) - Nível 2 
@@ -135,7 +135,7 @@ choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, Diago
     repeat,  % Inicia a repetição até um movimento válido
     valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Moves),  % Obtém os movimentos válidos
     bot_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move),  % Exibe o movimento do bot
+    display_bot_move(Move, blue),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
 
 
@@ -374,10 +374,20 @@ update_diagonal_rule(_, Row, Col, ToRow, ToCol, DiagonalRule, DiagonalRule) :-
 update_diagonal_rule(red, _, _, _, _, [_, BlueRule], [0, BlueRule]). % Vermelho jogou diagonal.
 update_diagonal_rule(blue, _, _, _, _, [RedRule, _], [RedRule, 0]). % Azul jogou diagonal.
 
-game_over(gameState(BoardSize,Board, _, _, _, _,_,_), Winner) :-
-    flatten(Board, FlatList),           % Achatar a lista de listas em uma lista única.
-    exclude(=(empty), FlatList, Pieces), % Remover todas as posições 'empty'.
-    same_color(Pieces, Winner).         % Verificar se todas as peças têm a mesma cor.
+game_over(gameState(BoardSize, Board, _, _, _, _, _, _), Winner) :-
+    flatten(Board, FlatList),               % Achatar a lista de listas em uma lista única.
+    exclude(=(empty), FlatList, Pieces),    % Remover todas as posições 'empty'.
+    (
+        same_color(Pieces, Winner)          % Caso todas as peças sejam da mesma cor.
+    ;
+        length(Pieces, 2),                  % Caso existam exatamente duas peças no tabuleiro.
+        max_piece_owner(Pieces, Winner)    % Determina o dono da peça maior.
+    ).
+
+max_piece_owner([Color1-Size1, Color2-Size2], Winner) :-
+    ( Size1 > Size2 -> Winner = Color1
+    ; Size2 > Size1 -> Winner = Color2
+    ).
 
 congratulate(Winner) :-
     nl,
