@@ -51,7 +51,8 @@ map_difficulty(Difficulty, Level) :-
     !.
 
 map_single_difficulty(easy, 1).
-map_single_difficulty(hard, 2).
+map_single_difficulty(medium, 2).
+map_single_difficulty(hard, 3).
 map_single_difficulty(empty, 0).
 
 
@@ -386,9 +387,12 @@ game_over(gameState(BoardSize, Board, _, _, _, _, _, _), Winner) :-
     ).
 
 max_piece_owner([Color1-Size1, Color2-Size2], Winner) :-
-    ( Size1 > Size2 -> Winner = Color1
-    ; Size2 > Size1 -> Winner = Color2
-    ).
+    Size1 > Size2,  
+    Winner = Color1. 
+max_piece_owner([Color1-Size1, Color2-Size2], Winner) :-
+    Size2 > Size1,  % Se a peça 2 é maior que a peça 1
+    Winner = Color2. 
+
 
 congratulate(Winner) :-
     nl,

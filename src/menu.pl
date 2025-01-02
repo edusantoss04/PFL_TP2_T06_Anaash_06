@@ -74,15 +74,17 @@ choose_difficulty(Difficulty) :-
     nl,
     print_menu_header('Choose Difficulty Level'),
     write('1) Easy\n'),
-    write('2) Hard\n\n'),
+    write('2) Medium\n\n'),
+    write('3) Hard\n\n'),
     repeat,
-    read_menu_option(1, 2, Option),
+    read_menu_option(1, 3, Option),
     difficulty_from_option(Option, Difficulty),
     nl.
 
 % Mapeia a opção para o nível de dificuldade
 difficulty_from_option(1, easy).
-difficulty_from_option(2, hard).
+difficulty_from_option(2, Medium).
+difficulty_from_option(3, Hard).
 
 handle_enable_rule(pc_pc, [0,0]):- !.
 handle_enable_rule(h_pc, [0,0]):- !.
