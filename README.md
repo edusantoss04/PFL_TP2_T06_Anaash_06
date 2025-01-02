@@ -3,11 +3,11 @@
 Anaash is a two-player strategy game created by Mark Steere, played on a 6x6, 8x8, or larger checkerboard. The board starts with a checkered pattern of red and blue checkers, each forming a stack of one piece, known as a "singleton." Players take turns moving and combining stacks, aiming to outmaneuver their opponent through strategic positioning and control of the board.
 
 ### Group and Contributions: (falta escrever as contribuições e decrição)
+indication of the contribution (in percentages, adding up to 100%, and a brief description of tasks performed) of each member of the group to the assignment.
 - Eduardo Narciso Rodrigues Santos, up202207521
 - Pedro dos Santos Sousa Pedro, up202206961
 - Renata Soares Bandeira Simão, up202205124
 
-indication of the contribution (in percentages, adding up to 100%, and a brief description of tasks performed) of each member of the group to the assignment.
 
 ● Installation and Execution: include all the necessary steps for the correct execution of the game in both Linux and Windows environments (in addition to the installation of SICStus Prolog 4.9).
 
