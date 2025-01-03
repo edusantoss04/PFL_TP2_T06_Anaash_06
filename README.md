@@ -1,6 +1,6 @@
 # PFL_TP2_T06_Anaash_06
 
-Anaash is a two-player strategy game created by Mark Steere, played on a 6x6, 8x8, or larger checkerboard. The board starts with a checkered pattern of red and blue checkers, each forming a stack of one piece, known as a "singleton." Players take turns moving and combining stacks, aiming to outmaneuver their opponent through strategic positioning and control of the board.
+The game we choose was Anaash.
 
 ### Group and Contributions: (falta escrever as contribuições e decrição)
 indication of the contribution (in percentages, adding up to 100%, and a brief description of tasks performed) of each member of the group to the assignment.
@@ -8,12 +8,10 @@ indication of the contribution (in percentages, adding up to 100%, and a brief d
 - Pedro dos Santos Sousa Pedro, up202206961
 - Renata Soares Bandeira Simão, up202205124
 
-
 ● Installation and Execution: include all the necessary steps for the correct execution of the game in both Linux and Windows environments (in addition to the installation of SICStus Prolog 4.9).
 
-● Description of the game: a brief description of the game and its rules; you should also include the links used to gather information (official game website, rule book, etc.).
 ### Description of Anaash
-Anaash, designed by Mark Steere in February 2021, is a two-player abstract strategy game played on a checkerboard grid. The standard board size is 6x6 or 8x8, and the board starts fully populated with a checkered pattern of red and blue checkers. Each checker stack is initially composed of like-colored checkers, and a stack of height 1 is called a "singleton."
+Anaash is a two-player abstract strategy game created by Mark Steere in February 2021. It is played on a 6x6, 8x8, or larger checkerboard, which starts fully populated with a checkered pattern of red and blue checkers. Each checker stack consists of one piece, known as a "singleton." Players take turns moving and combining stacks, aiming to outmaneuver their opponent through strategic positioning and control of the board.
 
 ### Objective
 The goal of the game is to capture all enemy checkers. Draws are not possible.
