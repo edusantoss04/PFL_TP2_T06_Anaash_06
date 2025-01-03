@@ -12,6 +12,34 @@ indication of the contribution (in percentages, adding up to 100%, and a brief d
 ● Installation and Execution: include all the necessary steps for the correct execution of the game in both Linux and Windows environments (in addition to the installation of SICStus Prolog 4.9).
 
 ● Description of the game: a brief description of the game and its rules; you should also include the links used to gather information (official game website, rule book, etc.).
+### Description of Anaash
+Anaash, designed by Mark Steere in February 2021, is a two-player abstract strategy game played on a checkerboard grid. The standard board size is 6x6 or 8x8, and the board starts fully populated with a checkered pattern of red and blue checkers. Each checker stack is initially composed of like-colored checkers, and a stack of height 1 is called a "singleton."
+
+### Objective
+The goal of the game is to capture all enemy checkers. Draws are not possible.
+
+### Gameplay
+Players alternate turns, starting with Red. During their turn, players can make one move using one of their stacks. If a player cannot make a valid move, they must skip their turn and wait until a move becomes available. At least one player will always have a move available at any point in the game.
+
+### Types of Moves
+#### 1. Positional Moves:
+- A stack is moved orthogonally (horizontally or vertically) to an adjacent unoccupied square.
+- The move must reduce the Manhattan distance to the stack's nearest neighbor, regardless of color or height.
+- Only stacks with no orthogonal neighbors are eligible for positional moves.
+
+#### 2. Stacking Moves:
+- A stack is moved onto an orthogonally adjacent friendly stack of equal or greater height.
+
+#### 3. Capturing Moves:
+- A stack captures an orthogonally adjacent enemy stack of equal or smaller height.
+
+### Notable Rules
+- The game always progresses towards one player capturing all the opponent's pieces, making it a deterministic game with no chance of ties.
+- The name "Anaash" originates from the Mongolian word for giraffe.
+
+### References
+- Game rules source:[ Mark Steere's official rule sheet](https://www.marksteeregames.com/Anaash_rules.pdf)
+- Author's website: [marksteeregames.com](http://marksteeregames.com/)
 
 ● Considerations for game extensions: describe the considerations taken into account when extending the game design, namely when considering variable-sized boards, optional rules (e.g., simplified rules for novice players, additional rules for expert players), and other aspects.
 
