@@ -22,20 +22,22 @@ board(8, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
 
 
-display_game(gameState(BoardSize, Board, _, _, _, _, _,_)):-
+display_game(gameState(BoardSize, Board, _, _, _, _, _, _)) :-
     nl,
-    print_lines(Board, 0),
+    transpose(Board, TransposedBoard),  % Transpõe o tabuleiro (troca linhas por colunas)
+    reverse(TransposedBoard, ReversedBoard),  % Inverte as linhas após a transposição
+    print_lines(ReversedBoard, BoardSize),  % Imprime as linhas e colunas invertidas
     nl,
     print_header(BoardSize).
 
 % Itera sobre cada linha do tabuleiro
-print_lines([], _ , _).
-print_lines([Line|Rest], Index, BoardSize) :-
+print_lines([], _).  % Base case
+print_lines([Line|Rest], Index) :-
     format('~d  ', [Index]),  % Número da linha antes da célula
     print_line(Line),
     nl,  % Nova linha após imprimir a linha inteira
-    NextIndex is Index + 1,  % Incrementa o índice
-    (Index < BoardSize -> print_lines(Rest, NextIndex, BoardSize); true).
+    NextIndex is Index - 1,  % Decrementa o índice para ir de baixo para cima
+    print_lines(Rest, NextIndex).  % Chama recursivamente para a próxima linha
 
 % Imprime uma linha específica
 print_line([]).
@@ -68,8 +70,8 @@ print_spaces(N) :-
     print_spaces(N1).
 
 print_header(8):-
-    write('      8      7      6      5      4      3      2      1 \n').
+    write('      1      2      3      4      5      6      7      8 \n').
 print_header(6):-
-    write('      5      4      3      2      2      1 \n').
+    write('      1      2      4      4      5      6 \n').
 print_header(4):-
-    write('      4      3      2      1 \n').
+    write('      1      2      3      4 \n').

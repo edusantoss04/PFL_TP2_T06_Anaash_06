@@ -127,3 +127,11 @@ my_max_list([Head|Tail], Max) :-
 
 max(X, Y, X) :- X >= Y.
 max(X, Y, Y) :- X < Y.
+
+% Subtrai 1 de cada coordenada do movimento
+move_minus_1((Row-Col, ToRow-ToCol), (NewRow-NewCol, NewToRow-NewToCol)) :-
+    NewRow is Row - 1,  % Subtrai 1 de Row
+    NewCol is Col - 1,  % Subtrai 1 de Col
+    NewToRow is ToRow - 1,  % Subtrai 1 de ToRow
+    NewToCol is ToCol - 1.  % Subtrai 1 de ToCol
+

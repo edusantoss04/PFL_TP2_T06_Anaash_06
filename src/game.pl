@@ -212,10 +212,11 @@ update_size(Size, TargetPiece, TargetSize, NewSize) :-
 
 
 % Função para obter o movimento do jogador
-get_move(Player, Move) :-
+get_move(Player, NewMove) :-
     write(Player),
-    write(', choose your move (RowI-ColI,RowF-ColF): '), nl,
+    write(', choose your move (ColI-RowI,ColF-RowF): '), nl,
     catch(read(Move), _, (write('Invalid input. Please try again.'), nl, fail)),
+    move_minus_1(Move, NewMove),
     !.
 
 % Função para verificar se o movimento é válido
