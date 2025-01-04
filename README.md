@@ -8,7 +8,9 @@ indication of the contribution (in percentages, adding up to 100%, and a brief d
 - Pedro dos Santos Sousa Pedro, up202206961
 - Renata Soares Bandeira Simão, up202205124
 
-● Installation and Execution: include all the necessary steps for the correct execution of the game in both Linux and Windows environments (in addition to the installation of SICStus Prolog 4.9).
+### Installation and Execution
+1. sicstus -l game.pl
+2. play.
 
 ### Description of Anaash
 Anaash is a two-player abstract strategy game created by Mark Steere in February 2021. It is played on a 6x6, 8x8, or larger checkerboard, which starts fully populated with a checkered pattern of red and blue checkers. Each checker stack consists of one piece, known as a "singleton." Players take turns moving and combining stacks, aiming to outmaneuver their opponent through strategic positioning and control of the board.
@@ -48,17 +50,23 @@ Players alternate turns, starting with Red. During their turn, players can make 
 ### Considerations for game extensions
 Our game has 3 different board sizes, such as 4x4, 6x6 and 8x8, and in the 3 different sizes, there are no additional considerations to take into account during the game. The size of the board does not change the way you play. In addition, we have implemented an optional rule in which all players have the chance to play once diagonally. There is no variety of rules when it comes to the players' gaming experience.
 
-● Game Logic: Describe the main design decisions regarding the implementation of the game logic in Prolog (do not copy the source code). This section should have information on the following topics, among others:
+### Game Logic
+Describe the main design decisions regarding the implementation of the game logic in Prolog (do not copy the source code). This section should have information on the following topics, among others:
 
-o Game Configuration Representation: describe the information required to represent the game configuration, how it is represented internally and how it is used by the initial_state/2 predicate.
+#### Game Configuration Representation
+describe the information required to represent the game configuration, how it is represented internally and how it is used by the initial_state/2 predicate.
   
-o Internal Game State Representation: describe the information required to represent the game state, how it is represented internally, including an indication of the meaning of each atom (i.e. how different pieces are represented). Include examples of representations of initial, intermediate, and final game states.
+#### Internal Game State Representation
+describe the information required to represent the game state, how it is represented internally, including an indication of the meaning of each atom (i.e. how different pieces are represented). Include examples of representations of initial, intermediate, and final game states.
   
-o Move Representation: describe the information required to represent a move, and how it is represented internally (e.g., the coordinates of a board location, and/or other information necessary to represent a move) and how it is used by the move/3 predicate.
+#### Move Representation
+describe the information required to represent a move, and how it is represented internally (e.g., the coordinates of a board location, and/or other information necessary to represent a move) and how it is used by the move/3 predicate.
 
-o User Interaction: briefly describe the game menu system, as well as how interaction with the user is performed, focusing on input validation (e.g., when reading a move).
+#### User Interaction
+briefly describe the game menu system, as well as how interaction with the user is performed, focusing on input validation (e.g., when reading a move).
 
-● Conclusions: Conclusions about the work carried out, including limitations of the program (and known issues), as well as possible improvements (future developments roadmap).
+### Conclusions
+Looking at all the work that has been done, we realise that if we had more time to work on this project, we would have implemented the optional rule in which players have the possibility of playing once diagonally not only for human players, but also for bots.
 
 ### Bibliography
 - Game rules source:[ Mark Steere's official rule sheet](https://www.marksteeregames.com/Anaash_rules.pdf)
