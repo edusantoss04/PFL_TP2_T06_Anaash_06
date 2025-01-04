@@ -1,4 +1,5 @@
-
+% Example boards of different sizes (4x4, 6x6, 8x8)
+% Each cell is defined by its color (blue or red) and its size
 board(4, [[blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1],
           [blue-1, red-1, blue-1, red-1],
@@ -22,56 +23,70 @@ board(8, [[blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1],
           [red-1, blue-1, red-1, blue-1, red-1, blue-1, red-1, blue-1]]).
 
 
+% Main predicate to display the game board
 display_game(gameState(BoardSize, Board, _, _, _, _, _, _)) :-
-    nl,
-    transpose(Board, TransposedBoard),  % Transpõe o tabuleiro (troca linhas por colunas)
-    reverse(TransposedBoard, ReversedBoard),  % Inverte as linhas após a transposição
-    print_lines(ReversedBoard, BoardSize),  % Imprime as linhas e colunas invertidas
-    nl,
-    print_header(BoardSize).
+    nl,  % Print a new line for separation
+    transpose(Board, TransposedBoard),  % Transpose the board (swap rows and columns)
+    reverse(TransposedBoard, ReversedBoard),  % Reverse rows to adjust display orientation
+    print_lines(ReversedBoard, BoardSize),  % Print the formatted board lines
+    nl,  % Add a new line after the board
+    print_header(BoardSize).  % Print the column headers based on the board size
 
-% Itera sobre cada linha do tabuleiro
-print_lines([], _).  % Base case
+% Base case for printing a line: no more cells to print
+print_lines([], _). 
+
+% Recursive case: print each line of the board
 print_lines([Line|Rest], Index) :-
-    format('~d  ', [Index]),  % Número da linha antes da célula
+    format('~d  ', [Index]),  
     print_line(Line),
-    nl,  % Nova linha após imprimir a linha inteira
-    NextIndex is Index - 1,  % Decrementa o índice para ir de baixo para cima
-    print_lines(Rest, NextIndex).  % Chama recursivamente para a próxima linha
+    nl,  
+    NextIndex is Index - 1,  
+    print_lines(Rest, NextIndex). 
 
-% Imprime uma linha específica
+% Recursive case: print each cell in a line
 print_line([]).
 print_line([Cell|Rest]) :-
     print_cell(Cell),
     print_line(Rest).
 
-% Imprime uma célula vazia
+% Print an empty cell
+% Uses a white background and spaces to simulate an empty square
 print_cell(empty) :-
-    write('\e[47m'),          % Fundo branco
-    write('       '),         % Espaços para formatação
+    write('\e[47m'),          
+    write('       '),        
     reset_color.
 
-% Imprime uma célula com a cor e número apropriados
+% Print a cell with a specific color and number
 print_cell(Color-Number) :-
     print_color(Color),
-    number_chars(Number, Digits),  % Converte o número para uma lista de caracteres
-    length(Digits, Length),        % Calcula a quantidade de dígitos
-    Spaces is 4 - Length,          % Calcula o número de espaços necessários antes do número
+    number_chars(Number, Digits),  
+    length(Digits, Length),        
+    Spaces is 4 - Length,         
     write('   '),                  
     write(Number),                 
     print_spaces(Spaces),                  
     reset_color.
 
+% Base case for printing spaces: no spaces left to print
 print_spaces(0).
-print_spaces(N) :-
-    N > 0,
-    write(' '),
-    N1 is N - 1,
-    print_spaces(N1).
 
+% Recursive case: print the remaining spaces
+print_spaces(N) :-
+    N > 0, % Ensure there are spaces to print
+    write(' '), % Print a single space
+    N1 is N - 1, % Decrement the remaining spaces count
+    print_spaces(N1). % Recursively print the remaining spaces
+
+% Print column headers for a board of size 8x8
 print_header(8):-
     write('      1      2      3      4      5      6      7      8 \n').
+
+% Print column headers for a board of size 6x6
 print_header(6):-
     write('      1      2      4      4      5      6 \n').
+
+% Print column headers for a board of size 4x4
 print_header(4):-
     write('      1      2      3      4 \n').
+
+ 
