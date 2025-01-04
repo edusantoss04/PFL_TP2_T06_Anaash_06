@@ -152,3 +152,22 @@ move_minus_1((Row-Col, ToRow-ToCol), (NewRow-NewCol, NewToRow-NewToCol)) :-
     NewToRow is ToRow - 1,  % Subtrai 1 de ToRow
     NewToCol is ToCol - 1.  % Subtrai 1 de ToCol
 
+verifyEmpty(Board, Row-Col, ToRow-ToCol, empty):-
+    % Se a célula de destino estiver vazia, validamos o movimento
+    \+ valid_positional_move(Board, Row-Col, ToRow-ToCol), !, fail.
+
+verifyEmpty(_, _, _, _):-
+    % Em todos os outros casos, o movimento é considerado válido
+    true.
+
+% Função para calcular a distância de Manhattan entre duas posições
+manhattan_distance(Row1-Col1, Row2-Col2, Distance) :-
+    Distance is abs(Row1 - Row2) + abs(Col1 - Col2).
+
+my_min_list([Head|Tail], Min) :-
+    my_min_list(Tail, Head, Min).
+
+my_min_list([], Min, Min).
+my_min_list([Head|Tail], MinSoFar, Min) :-
+    (Head < MinSoFar -> NewMin = Head; NewMin = MinSoFar),
+    my_min_list(Tail, NewMin, Min).

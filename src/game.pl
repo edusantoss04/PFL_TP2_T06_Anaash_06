@@ -237,6 +237,8 @@ move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,Diago
     nth0(ToRow, Board, ToOldRow),
     get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize), !,
 
+    verifyEmpty(Board, Row-Col, ToRow-ToCol, TargetPiece), !,
+
     % Verificar se o movimento é válido
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
 
@@ -314,7 +316,8 @@ valid_moves(gameState(BoardSize, Board, Player, _, _, _, _,_), Moves) :-
             adjacent_position(BoardSize, Row, Col, ToRow, ToCol),
             nth0(ToRow, Board, ToOldRow),
             get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
-            valid_move(Piece, Size, TargetPiece, TargetSize, Player)
+            valid_move(Piece, Size, TargetPiece, TargetSize, Player),
+            verifyEmpty(Board, Row-Col, ToRow-ToCol, TargetPiece)
         ),
         AllMoves
     ),
@@ -453,12 +456,7 @@ update_diagonal_rule(blue, _, _, _, _, [RedRule, _], [RedRule, 0]). % Azul jogou
 game_over(gameState(BoardSize, Board, _, _, _, _, _, _), Winner) :-
     flatten(Board, FlatList),               % Achatar a lista de listas em uma lista única.
     exclude(=(empty), FlatList, Pieces),    % Remover todas as posições 'empty'.
-    (
-        same_color(Pieces, Winner)          % Caso todas as peças sejam da mesma cor.
-    ;
-        length(Pieces, 2),                  % Caso existam exatamente duas peças no tabuleiro.
-        max_piece_owner(Pieces, Winner)    % Determina o dono da peça maior.
-    ).
+    same_color(Pieces, Winner).
 
 max_piece_owner([Color1-Size1, Color2-Size2], Winner) :-
     Size1 > Size2,  
@@ -620,4 +618,33 @@ simulate_move1(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, 
     % Mover a peça de acordo com o movimento e atualizar o tamanho
     move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard),
     next_player(Player, NextPlayer).
+
+% Verificar se um movimento é posicionalmente válido
+valid_positional_move(Board, Row-Col, ToRow-ToCol) :-
+    % Obter todas as pilhas no tabuleiro, excluindo a pilha atual
+    findall(PieceRow-PieceCol,
+            (nth0(PieceRow, Board, RowList),
+             nth0(PieceCol, RowList, _-Size),  % Considera todas as pilhas
+             (PieceRow \= Row ; PieceCol \= Col)),  % Excluir a pilha atual
+            AllStacks),
     
+    valid_positional_movement(ToRow-ToCol, Row-Col, AllStacks).
+
+% Verifica se a nova posição reduz a distância de Manhattan
+valid_positional_movement(ToRow-ToCol, FromRow-FromCol, Stacks) :-
+    % Calcular a distância atual até a pilha mais próxima
+    findall(Distance,
+            (member(ClosestRow-ClosestCol, Stacks),
+             manhattan_distance(FromRow-FromCol, ClosestRow-ClosestCol, Distance)),
+            Distances),
+    my_min_list(Distances, CurrentDistance),
+    
+    % Calcular a nova distância até a pilha mais próxima
+    findall(NewDistance,
+            (member(ClosestRow-ClosestCol, Stacks),
+             manhattan_distance(ToRow-ToCol, ClosestRow-ClosestCol, NewDistance)),
+            NewDistances),
+    my_min_list(NewDistances, NewDistance),
+    
+    % Verificar se a nova distância é menor que a distância atual
+    NewDistance < CurrentDistance.
