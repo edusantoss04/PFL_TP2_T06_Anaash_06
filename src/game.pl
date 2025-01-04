@@ -22,7 +22,6 @@ game_cycle(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level,D
     congratulate(Winner).
 
 % game_cycle(gameState(2, [[blue-3,blue-3],[blue-3,red-1]],red, h_h, human, human,0)).
-% Caso em que há um movimento válido
 game_cycle(GameState) :-
     nl,
     choose_move(GameState, Move),  % Jogador realiza um movimento válido
@@ -139,6 +138,53 @@ choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, Diago
     bot_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
     display_bot_move(Move, blue),  % Exibe o movimento do bot
     !.  % Interrompe a repetição quando o movimento for feito
+
+% Bot vs Bot (red) - Nível 3
+choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule), Move) :-
+    repeat,  % Inicia a repetição até um movimento válido
+    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule), Moves),
+    calculate_depth(Moves,Depth),
+    minimax(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule),Depth,red,BestValue,Move),
+    display_bot_move(Move, red),  % Exibe o movimento do bot
+    !.  % Interrompe a repetição quando o movimento for feito
+
+% Bot vs Bot (blue) - Nível 3 
+choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule), Move) :-
+    repeat,  % Inicia a repetição até um movimento válido
+    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule), Moves),
+    calculate_depth(Moves,Depth),
+    minimax(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule),Depth,blue,BestValue,Move),
+    display_bot_move(Move, blue),  % Exibe o movimento do bot
+    !.  % Interrompe a repetição quando o movimento for feito
+
+
+% Blue é bot level 3 mas red é human
+choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 3, DiagonalRule), Move) :-
+    repeat,  % Inicia a repetição até um movimento válido
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 3, DiagonalRule), Moves),
+    calculate_depth(Moves,Depth),
+    minimax(gameState(BoardSize, Board, blue, h_pc, human, bot, 3, DiagonalRule),Depth,blue,BestValue,Move),
+    display_bot_move(Move, Player),  % Exibe o movimento do bot
+    !.  % Interrompe a repetição quando o movimento for feito
+
+
+% Função que ajusta a profundidade de acordo com o número de movimentos válidos
+calculate_depth(ValidMoves, Depth) :-
+    length(ValidMoves, NumMoves),
+    write(NumMoves),nl,
+    depth_for_moves(NumMoves, Depth),
+    write(Depth).
+
+% Mapeamento direto de movimentos válidos para profundidade
+depth_for_moves(NumMoves, Depth) :-
+    NumMoves >= 30, Depth = 2.
+depth_for_moves(NumMoves, Depth) :-
+    NumMoves >= 10, Depth = 3.
+depth_for_moves(NumMoves, Depth) :-
+    NumMoves >= 5, Depth = 4.
+depth_for_moves(NumMoves, Depth) :-
+    NumMoves < 5, Depth = 6.
+
 
 
 move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
@@ -266,7 +312,7 @@ bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level,
     % Avaliar todos os movimentos e associar a pontuação
     findall((Score, (Row-Col, ToRow-ToCol)), 
         (member((Row-Col, ToRow-ToCol), ValidMoves), 
-         simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (Row-Col, ToRow-ToCol), NewGameState), % Simula o movimento
+         simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (Row-Col, ToRow-ToCol),NewGameState), % Simula o movimento
          value(NewGameState, Player, Value),  % Avalia o novo estado do jogo com a função value
          evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), MoveScore),  % Avalia o movimento
          Score is Value + MoveScore),  % Combina o valor do estado do jogo com a pontuação do movimento
@@ -417,13 +463,15 @@ simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, L
     % Obter a peça e o tamanho na célula de origem
     get_cell(Row, Col, Board, Piece-Size),
 
+    nth0(ToRow, Board, ToOldRow),        % Obter a linha do destino
+
     % Obter a peça e o tamanho na célula de destino (caso de captura ou empilhamento)
-    get_target_piece(ToRow, ToCol, TargetPiece, TargetSize),
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
     
     % Mover a peça de acordo com o movimento e atualizar o tamanho
     move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard).
 
-
+% simulate_move(gameState(2,[[red-2,blue-2],[red-4,blue-1]],blue,_,_,_,_,_),(0-1,0-0),true,gameState(BoardSize, NewBoard, Player, GameType, RedType, BlueType, Level, DiagonalRule)).
 % Função que avalia o estado do jogo para o jogador (blue ou red)
 value(gameState(BoardSize, Board, Player, _, _, _, _, _), Player, Value) :-
     next_player(Player,Opponent),
@@ -471,3 +519,78 @@ test_count_pieces :-
     % Contar as peças do jogador 'red'
     count_pieces(Board, red, RedTotal),
     format('Total de peças para red: ~w~n', [RedTotal]).
+
+
+% minimax(gameState(2,[[red-2,blue-2],[red-4,blue-1]],blue,_,_,_,_,_),2,blue,BestScore,BestMove).
+minimax(GameState, Depth, Player, Score, _) :-
+    % Caso base: verifica se o jogo acabou ou se atingiu a profundidade 0
+    (game_over(GameState, _); Depth == 0),
+    minimax_value(GameState, Score),
+    !.
+
+minimax(GameState, Depth, Player, BestScore, BestMove) :-
+    GameState = gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), % Extração dos elementos de GameState
+    Depth > 0,
+    valid_moves(GameState, ValidMoves),
+    ValidMoves \= [],
+    NewDepth is Depth - 1,
+    next_player(Player, Opponent),
+    % Avaliar todos os movimentos possíveis
+    findall((TotalScore, Move),
+        (
+            member(Move, ValidMoves),
+            simulate_move1(GameState, Move, NewGameState),
+            minimax(NewGameState, NewDepth, Opponent, Score, _),
+            evaluate_move(BoardSize, Board, Player, Move, MoveScore),
+            TotalScore is Score + MoveScore
+        ),
+        ScoresMoves),
+
+    % Selecionar o melhor valor dependendo do jogador
+    select_best(Player, ScoresMoves, BestScore-BestMove).
+
+select_best(red, ScoresMoves, BestScore-BestMove) :-
+    select_max(ScoresMoves, BestScore-BestMove).
+
+select_best(blue, ScoresMoves, BestScore-BestMove) :-
+    select_min(ScoresMoves, BestScore-BestMove).
+
+
+select_max(ScoresMoves, BestScore-BestMove) :-
+    findall(Score, member((Score, _), ScoresMoves), Scores),
+    my_max_list(Scores, BestScore),
+    % Filtrar os movimentos que possuem o maior score
+    findall(Move, (member((BestScore, Move), ScoresMoves)), BestMoves),
+    % Selecionar aleatoriamente entre os melhores
+    random_member(BestMove, BestMoves).
+
+select_min(ScoresMoves, BestScore-BestMove) :-
+    findall(Score, member((Score, _), ScoresMoves), Scores),
+    my_min_list(Scores, BestScore),
+    % Filtrar os movimentos que possuem o menor score
+    findall(Move, (member((BestScore, Move), ScoresMoves)), BestMoves),
+    % Selecionar aleatoriamente entre os melhores
+    random_member(BestMove, BestMoves).
+
+
+minimax_value(gameState(BoardSize, Board, Player, _, _, _, _, _), Value) :-
+    count_pieces(Board, red, RedCount),
+    count_pieces(Board, blue, BlueCount),
+    Value is RedCount - BlueCount.
+
+simulate_move1(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule),
+              (Row-Col, ToRow-ToCol),
+              gameState(BoardSize, NewBoard, NextPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
+
+    % Obter a peça e o tamanho na célula de origem
+    get_cell(Row, Col, Board, Piece-Size),
+
+    nth0(ToRow, Board, ToOldRow),        % Obter a linha do destino
+
+    % Obter a peça e o tamanho na célula de destino (caso de captura ou empilhamento)
+    get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
+    
+    % Mover a peça de acordo com o movimento e atualizar o tamanho
+    move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard),
+    next_player(Player, NextPlayer).
+    

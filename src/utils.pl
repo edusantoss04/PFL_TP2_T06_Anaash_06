@@ -128,6 +128,19 @@ my_max_list([Head|Tail], Max) :-
 max(X, Y, X) :- X >= Y.
 max(X, Y, Y) :- X < Y.
 
+% Caso base: a lista contém apenas um elemento, este é o minimo.
+my_min_list([X], X).
+
+% Caso recursivo: compara o primeiro elemento (Head) com o minimo do restante da lista.
+my_min_list([Head|Tail], Min) :-
+    my_min_list(Tail, TailMin), 
+    Min is min(Head, TailMin).
+
+% Predicado auxiliar para calcular o menor entre dois valores.
+min(X, Y, X) :- X =< Y.
+min(X, Y, Y) :- X > Y.
+
+
 % Subtrai 1 de cada coordenada do movimento
 move_minus_1((Row-Col, ToRow-ToCol), (NewRow-NewCol, NewToRow-NewToCol)) :-
     NewRow is Row - 1,  % Subtrai 1 de Row
