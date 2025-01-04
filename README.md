@@ -47,20 +47,16 @@ o Game Configuration Representation: describe the information required to repres
   
 o Internal Game State Representation: describe the information required to represent the game state, how it is represented internally, including an indication of the meaning of each atom (i.e. how different pieces are represented). Include examples of representations of initial, intermediate, and final game states.
   
-o Move Representation: describe the information required to represent a move, and how it is
-represented internally (e.g., the coordinates of a board location, and/or other information
-necessary to represent a move) and how it is used by the move/3 predicate.
+o Move Representation: describe the information required to represent a move, and how it is represented internally (e.g., the coordinates of a board location, and/or other information necessary to represent a move) and how it is used by the move/3 predicate.
 
-o User Interaction: briefly describe the game menu system, as well as how interaction with the user
-is performed, focusing on input validation (e.g., when reading a move).
+o User Interaction: briefly describe the game menu system, as well as how interaction with the user is performed, focusing on input validation (e.g., when reading a move).
 
+● Conclusions: Conclusions about the work carried out, including limitations of the program (and known issues), as well as possible improvements (future developments roadmap).
 
-● Conclusions: Conclusions about the work carried out, including limitations of the program (and known
-issues), as well as possible improvements (future developments roadmap).
-
-● Bibliography: List of books, papers, web pages and other resources used during the development of the
-assignment. If you used tools such as ChatGPT, list the queries used.
-
-You can also include one or more imagesillustrating the execution of the game, showing initial, intermediate
-and final game states, and interaction with the game.
-The entire document should not exceed four pages (including images and references).
+### Bibliography
+- Game rules source:[ Mark Steere's official rule sheet](https://www.marksteeregames.com/Anaash_rules.pdf)
+- Author's website: [marksteeregames.com](http://marksteeregames.com/)
+- [SICStus Prolog](https://www.swi-prolog.org/)
+- [Geeks for geeks - minimax algorithm](https://www.geeksforgeeks.org/minimax-algorithm-in-game-theory-set-1-introduction/)
+- [Video - minimax algortihm](https://www.youtube.com/watch?v=l-hh51ncgDI)
+- [SICStus Manual](https://sicstus.sics.se/sicstus/docs/latest4/pdf/sicstus.pdf)
