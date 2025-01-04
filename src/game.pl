@@ -1,6 +1,7 @@
 :- use_module(library(system), [now/1]).
 :- use_module(library(lists)).
 :- use_module(library(random)).
+:- use_module(library(between)).
 :- consult(menu).
 :- consult(utils).
 :- consult(board).
@@ -213,80 +214,117 @@ depth_for_moves(NumMoves, Depth) :-
 depth_for_moves(NumMoves, Depth) :-
     NumMoves < 5, Depth = 6.
 
+/*
+* Changes the current player and sets the new game state:
+* move(+GameState, +Move, -NewGameState)
+* GameState: The current state of the game.
+* Move: The move to be made by the player, can be 'skip' or a piece move.
+* NewGameState: The new state of the game after the move has been made.
+*/
 
+move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip, 
+    gameState(BoardSize, Board, NewPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
+    next_player(Player, NewPlayer).  % Switch to the next player
 
-move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip, gameState(BoardSize,Board, NewPlayer, GameType, RedType, BlueType, Level, DiagonalRule)) :-
-    next_player(Player, NewPlayer).
+/*
+* Moves a piece on the board and updates the game state accordingly:
+* move(+GameState, +Move, -NewGameState)
+* GameState: The current state of the game.
+* Move: The move made by the player, consisting of starting and ending positions.
+* NewGameState: The updated game state after the move.
+*/
 
-move(gameState(BoardSize,Board, Player, GameType, RedType, BlueType, Level,DiagonalRule), (Row-Col,ToRow-ToCol), gameState(BoardSize,NewBoard, NewPlayer, GameType, RedType, BlueType, Level,UpdatedDiagonalRule)) :-
-    % Trocar o jogador
+move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), 
+     (Row-Col, ToRow-ToCol), 
+     gameState(BoardSize, NewBoard, NewPlayer, GameType, RedType, BlueType, Level, UpdatedDiagonalRule)) :-
+    
+    % Switch the current player after the move
     next_player(Player, NewPlayer),
 
-    % Obter o valor de DiagonalRule correspondente ao jogador atual
+    % Get the current player s diagonal move permission
     get_player_diagonal_permission(Player, DiagonalRule, CanMoveDiagonally),
 
-    % Validar a direção
-    % valid_direction(Row, Col, ToRow, ToCol),
+    % Validate the direction of the move
     valid_move_in_direction(Row, Col, ToRow, ToCol, CanMoveDiagonally),
 
-    % Obter a peça a mover
+    % Get the piece to be moved from the board
     nth0(Row, Board, OldRow),
     nth0(Col, OldRow, Piece-Size),
 
-    % Obter o conteúdo da célula de destino
+    % Get the target piece and its size from the destination cell
     nth0(ToRow, Board, ToOldRow),
     get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize), !,
 
     verifyEmpty(Board, Row-Col, ToRow-ToCol, TargetPiece), !,
 
-    % Verificar se o movimento é válido
+    % Check if the move is valid based on piece type and size
     valid_move(Piece, Size, TargetPiece, TargetSize, Player),
 
-    % Mover a peça
+    % Move the piece on the board
     move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard),
 
-    % Atualizar o DiagonalRule, se necessário
+    % Update diagonal move rule if necessary
     update_diagonal_rule(Player, Row, Col, ToRow, ToCol, DiagonalRule, UpdatedDiagonalRule).
 
 
-% Verificar se o movimento é válido
+/*
+* Checks whether the move is valid based on piece type, target piece, and size:
+* valid_move(+Piece, +Size, +TargetPiece, +TargetSize, +Player)
+* Piece: The piece the player is trying to move.
+* Size: The size of the piece the player is trying to move.
+* TargetPiece: The piece in the target cell, can be 'empty' or an opponent piece.
+* TargetSize: The size of the target piece.
+* Player: The current player making the move.
+*/
 valid_move(Piece, Size, empty, _, Player) :-
-    Piece == Player, !.  % A peça deve pertencer ao jogador
+    Piece == Player, !.  % The piece must belong to the current player
+
 valid_move(Piece, Size, TargetPiece, TargetSize, Player) :-
-    Piece == Player,  % A peça pertence ao jogador
-    valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player).
+    Piece == Player,  % The piece must belong to the current player
+    valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player).  % Check movement conditions
 
-% Condições de movimento
+% Validates the movement conditions based on the player and the piece sizes:
 valid_move_condition(Piece, Size, TargetPiece, TargetSize, Player) :-
-    (Player == blue, TargetPiece == red, Size >= TargetSize);  % Blue pode capturar Red
-    (Player == blue, TargetPiece == blue, Size =< TargetSize);  % Blue pode mover para outra célula azul
-    (Player == red, TargetPiece == blue, Size >= TargetSize);  % Red pode capturar Blue
-    (Player == red, TargetPiece == red, Size =< TargetSize).   % Red pode mover para outra célula vermelha
+    (Player == blue, TargetPiece == red, Size >= TargetSize);  % Blue can capture Red
+    (Player == blue, TargetPiece == blue, Size =< TargetSize);  % Blue can move to another blue cell
+    (Player == red, TargetPiece == blue, Size >= TargetSize);  % Red can capture Blue
+    (Player == red, TargetPiece == red, Size =< TargetSize).   % Red can move to another red cell
 
-% Mover a peça no tabuleiro
+/*
+* Moves the piece from one position to another on the board:
+* move_piece(+Board, +Row, +Col, +ToRow, +ToCol, +Piece, +Size, +TargetPiece, +TargetSize, -NewBoard)
+* Board: The current game board.
+* Row, Col: The current position of the piece to be moved.
+* ToRow, ToCol: The destination position for the piece.
+* Piece: The piece to be moved.
+* Size: The size of the piece to be moved.
+* TargetPiece: The piece in the target cell.
+* TargetSize: The size of the target piece.
+* NewBoard: The updated game board after the move.
+*/
 move_piece(Board, Row, Col, ToRow, ToCol, Piece, Size, TargetPiece, TargetSize, NewBoard) :-
-    % Atualizar o tamanho usando a função update_size
+    % Update the size of the piece if necessary (based on capturing an opponents piece)
     update_size(Size, TargetPiece, TargetSize, NewSize),
 
-    % Atualizar a célula de origem (deve ser 'empty' após o movimento)
+    % Remove the piece from the origin cell (set it to 'empty')
     replace(Board, Row, Col, empty, TempBoard),
 
-    % Colocar a peça na nova posição com o novo tamanho
+    % Place the piece in the new position with the new size
     replace(TempBoard, ToRow, ToCol, Piece-NewSize, NewBoard).
 
-% Atualizar o tamanho da peça
+% Updates the size of the piece after a move, considering whether the destination is empty or has an opponents piece:
 update_size(Size, empty, NewSize) :-
-    NewSize = Size.  % Se a célula de destino for vazia, não altera o tamanho.
+    NewSize = Size.  % If the destination is empty, the size remains unchanged.
 
 update_size(Size, TargetPiece, TargetSize, NewSize) :-
-    Piece \== TargetPiece,  % Se for uma peça adversária
-    NewSize is Size + TargetSize.
+    Piece \== TargetPiece,  % If the destination contains an opponent piece
+    NewSize is Size + TargetSize.  % The piece size increases by the size of the captured piece
 
 update_size(Size, TargetPiece, TargetSize, NewSize) :-
-    Piece == TargetPiece,  % Se for uma peça do mesmo jogador
-    NewSize is Size + TargetSize.
+    Piece == TargetPiece,  % If the destination contains a piece of the same player
+    NewSize is Size + TargetSize.  % The piece size increases by the size of the same player piece
 
-
+% Prompts the player to choose a move and adjusts the indices to match the board representation:
 get_move(Player, NewMove) :-
     write(Player),
     write(', choose your move (ColI-RowI,ColF-RowF): '), nl,
@@ -294,70 +332,100 @@ get_move(Player, NewMove) :-
     move_minus_1(Move, NewMove),
     !.
 
-% Função para verificar se o movimento é válido
+/*
+* Verifies if a move is valid by attempting to execute it:
+* valid_move(+GameState, +Move)
+* GameState: The current state of the game.
+* Move: The move the player wants to make.
+*/
 valid_move(GameState, Move) :-
-    move(GameState, Move, _),  % Tenta realizar o movimento
-    !.  % Se o movimento for válido, interrompe o repeat
+    move(GameState, Move, _),  % Tries to make the move and check if its valid
+    !.  % If the move is valid, the execution stops and succeeds.
+
 valid_move(_) :-
-    write('Invalid move. Please try again.'), nl,
-    fail.  % Se o movimento for inválido, força a repetição
+    write('Invalid move. Please try again.'), nl,  % If the move is invalid, print an error message
+    fail.  % Forces the repeat of the move due to invalidity.
 
 
-% Retorna todos os movimentos válidos para um dado jogador
-valid_moves(gameState(BoardSize, Board, Player, _, _, _, _,_), Moves) :-
-    Limit is BoardSize - 1,
+/*
+* Returns all valid moves for the given player in the current game state:
+* valid_moves(+GameState, -Moves)
+* GameState: The current state of the game.
+* Moves: A list of valid moves for the current player.
+*/
+valid_moves(gameState(BoardSize, Board, Player, _, _, _, _, _), Moves) :-
+    Limit is BoardSize - 1,  % The limit for row and column index is one less than the board size.
+    
+    % Find all possible moves
     findall(
         (Row-Col, ToRow-ToCol),
         (
-            between(0, Limit, Row),
-            between(0, Limit, Col),
-            get_cell(Row, Col, Board, Piece-Size),
-            Piece == Player,
-            adjacent_position(BoardSize, Row, Col, ToRow, ToCol),
-            nth0(ToRow, Board, ToOldRow),
-            get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),
-            valid_move(Piece, Size, TargetPiece, TargetSize, Player),
-            verifyEmpty(Board, Row-Col, ToRow-ToCol, TargetPiece)
+            between(0, Limit, Row),  % Iterate through all rows
+            between(0, Limit, Col),  % Iterate through all columns
+            get_cell(Row, Col, Board, Piece-Size),  % Get the piece and its size from the cell
+            Piece == Player,  % The piece must belong to the current player
+            adjacent_position(BoardSize, Row, Col, ToRow, ToCol),  % Check if the destination is adjacent
+            nth0(ToRow, Board, ToOldRow),  % Get the row of the destination cell
+            get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize),  % Get the target piece and size
+            valid_move(Piece, Size, TargetPiece, TargetSize, Player),  % Check if the move is valid
+            verifyEmpty(Board, Row-Col, ToRow-ToCol, TargetPiece)  % Ensure the move is to a valid empty cell or opponent piece
         ),
         AllMoves
     ),
+    
+    % Sort and return the valid moves
     sort(AllMoves, Moves).
 
-% Retorna as posições adjacentes a uma célula dentro dos limites do tabuleiro
+/*
+* Checks if a position is adjacent to another within the board's size:
+* adjacent_position(+BoardSize, +Row, +Col, +ToRow, +ToCol)
+* BoardSize: The size of the board (defines the board's boundaries).
+* Row, Col: The current position of the piece.
+* ToRow, ToCol: The target position to which the piece is moving.
+*/
 adjacent_position(BoardSize, Row, Col, ToRow, ToCol) :-
-    member((DRow, DCol), [(0, 1), (1, 0), (0, -1), (-1, 0)]),
-    ToRow is Row + DRow,
-    ToCol is Col + DCol,
-    ToRow >= 0, ToRow < BoardSize,
-    ToCol >= 0, ToCol < BoardSize.
-
-% valid_moves(gameState(2, [[empty, blue-1],[red-5, empty]],blue,_,_,_,_), Moves).
+    member((DRow, DCol), [(0, 1), (1, 0), (0, -1), (-1, 0)]),  % Consider the four possible directions (up, down, left, right)
+    ToRow is Row + DRow,  % Calculate the new row by adding the delta row
+    ToCol is Col + DCol,  % Calculate the new column by adding the delta column
+    ToRow >= 0, ToRow < BoardSize,  % Ensure the new row is within the board boundaries
+    ToCol >= 0, ToCol < BoardSize.  % Ensure the new column is within the board boundaries
 
 
-% Função para gerar e avaliar os movimentos válidos do bot.
-bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (BestRow-BestCol, BestToRow-BestToCol)) :-
-    % Gerar todos os movimentos válidos
+
+/*
+* Generates and evaluates all valid moves for the bot to make the best decision:
+* bot_move(+GameState, -BestMove)
+* GameState: The current state of the game.
+* BestMove: The best move selected by the bot, based on simulation and evaluation.
+*/
+bot_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), 
+         (BestRow-BestCol, BestToRow-BestToCol)) :-
+    
+    % Generate all valid moves for the current player
     valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), ValidMoves),
     
-    % Avaliar todos os movimentos e associar a pontuação
+    % Evaluate all valid moves and associate each with a score
     findall((Score, (Row-Col, ToRow-ToCol)), 
-        (member((Row-Col, ToRow-ToCol), ValidMoves), 
-         simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), (Row-Col, ToRow-ToCol),NewGameState), % Simula o movimento
-         value(NewGameState, Player, Value),  % Avalia o novo estado do jogo com a função value
-         evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), MoveScore),  % Avalia o movimento
-         Score is Value + MoveScore),  % Combina o valor do estado do jogo com a pontuação do movimento
+        (
+            member((Row-Col, ToRow-ToCol), ValidMoves),  % For each valid move
+            simulate_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), 
+                          (Row-Col, ToRow-ToCol), NewGameState),  % Simulate the move
+            value(NewGameState, Player, Value),  % Evaluate the new game state with the value function
+            evaluate_move(BoardSize, Board, Player, (Row-Col, ToRow-ToCol), MoveScore),  % Evaluate the move score
+            Score is Value + MoveScore  % Combine the value and move score to get the total score
+        ),
         EvaluatedMoves),
     
-    
+    % Get the maximum score from the evaluated moves
     findall(Score, member((Score, _), EvaluatedMoves), Scores),
-    my_max_list(Scores, MaxScore),
+    my_max_list(Scores, MaxScore),  % Find the move with the highest score
     
-   
+    % Find all moves that have the maximum score
     findall((MaxScore, (Row-Col, ToRow-ToCol)),
         member((MaxScore, (Row-Col, ToRow-ToCol)), EvaluatedMoves),
         BestMoves),
     
-    % Escolher um movimento aleatório entre os melhores
+    % Choose a random best move from the best-scoring moves
     random_member((_, (BestRow-BestCol, BestToRow-BestToCol)), BestMoves).
 
 
