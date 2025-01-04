@@ -72,8 +72,12 @@ reset_color :-
 
 
 display_bot_move((Row-Col, ToRow-ToCol), Bot):-
-    format('The ~w bot moved from (~d, ~d) to (~d, ~d).~n', [Bot, Row, Col, ToRow, ToCol]).
-
+    NewRow is Row + 1,
+    NewCol is Col + 1,
+    NewToCol is ToCol + 1,
+    NewToRow is ToRow + 1,
+    format('The ~w bot moved from (~d, ~d) to (~d, ~d).~n', [Bot, NewRow, NewCol, NewToRow, NewToCol]).
+    
 % Predicado que verifica se todas as peças têm a mesma cor (ignorando números).
 same_color([], _) :- fail.              % Falha se não houver peças (apenas 'empty').
 same_color([Color-_|T], Winner) :-      % Ignora o número e verifica apenas a cor.

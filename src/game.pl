@@ -16,23 +16,36 @@ play :-
     display_game(GameState),
     game_cycle(GameState).
 
-
+/*
+* Game cycle that alternates between players and checks if the game is over:
+* game_cycle(+GameState)
+* GameState: The current state of the game, containing the board and player details.
+* If the game is over, it ends the cycle and congratulates the winner.
+* If not, it continues the game with the updated game state.
+*/
 game_cycle(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level,DiagonalRule)):-
     game_over(gameState(BoardSize,Board,Player, GameType, RedType ,BlueType,Level,DiagonalRule), Winner), !,
     congratulate(Winner).
 
-% game_cycle(gameState(2, [[blue-3,blue-3],[blue-3,red-1]],red, h_h, human, human,0)).
 game_cycle(GameState) :-
     nl,
-    choose_move(GameState, Move),  % Jogador realiza um movimento válido
-    move(GameState, Move, NewGameState),  % Aplica o movimento
-    display_game(NewGameState),  % Mostra o estado atualizado
+    choose_move(GameState, Move),  %  Asks the player for a move.
+    move(GameState, Move, NewGameState),  % Applies the move to get a new game state.
+    display_game(NewGameState),  % Displays the updated game state.
     !,
-    game_cycle(NewGameState).  % Continua para o próximo turno
+    game_cycle(NewGameState).  % Continues the game with the updated game state.
 
-
+/*
+* Initializes the game state based on the provided configuration:
+* initial_state(+GameType, +BoardSize, +Difficulty, +DiagonalRule, -GameState)
+* GameType: The type of the game (e.g., 'h_h', 'h_pc').
+* BoardSize: The size of the game board (e.g., 8 for an 8x8 board).
+* Difficulty: The difficulty level of the game.
+* DiagonalRule: Whether diagonal moves are allowed.
+* GameState: The initialized game state, including the board and player types.
+*/
 initial_state((GameType, BoardSize, Difficulty, DiagonalRule), gameState(BoardSize, Board, red, GameType, RedType, BlueType, Level, DiagonalRule)) :-
-    board(BoardSize,Board), %vai buscar o Board
+    board(BoardSize,Board), % Generates the board based on size.
     map_difficulty(Difficulty,Level),
     map_game_type(GameType, RedType, BlueType).
 
@@ -56,124 +69,139 @@ map_single_difficulty(empty, 0).
 
 
 
-% choose_move(+GameState, -Move).
-% Caso sem movimentos válidos
+
+/*
+* Chooses the move for the player based on the current game state:
+* choose_move(+GameState, -Move)
+* GameState: The current state of the game.
+* Move: The move selected for the current player, or 'skip' if no valid moves are available.
+*/
+
+% No valid moves available, skip the player s turn
 choose_move(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), skip) :-
     valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, BlueType, Level, DiagonalRule), []),
     format('Player ~w has no valid moves. Skipping turn./n', [Player]),
     !.
 
-% Red é human 
+% Red is human player
 choose_move(gameState(BoardSize, Board, red, GameType, human, BlueType, Level, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição
-    get_move(red, Move),  % Solicita o movimento
-    valid_move(gameState(BoardSize, Board, red, GameType, human, BlueType, Level, DiagonalRule), Move),  % Verifica se o movimento é válido
+    repeat,  
+    get_move(red, Move),  % Asks the human player for a move.
+    valid_move(gameState(BoardSize, Board, red, GameType, human, BlueType, Level, DiagonalRule), Move),  % Checks if the move is valid.
     !.  % Interrompe a repetição se o movimento for válido
 
-% Blue é human 
+% Blue is human player
 choose_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição
-    get_move(blue, Move),  % Solicita o movimento
-    valid_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level, DiagonalRule), Move),  % Verifica se o movimento é válido
+    repeat,  
+    get_move(blue, Move),  % Asks the human player for a move.
+    valid_move(gameState(BoardSize, Board, blue, GameType, RedType, human, Level, DiagonalRule), Move),  % Checks if the move is valid.
     !.  % Interrompe a repetição se o movimento for válido
 
-% Blue é bot mas red é human
+% Blue is bot, red is human (Level 1 bot)
 choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Move) :-
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Moves),
-    random_member(Move, Moves), 
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Moves), % Get valid moves for the bot.
+    random_member(Move, Moves),  % Selects a random valid move for the bot.
     display_bot_move(Move, Player), !.
 
-% Red é bot mas blue é human
+% Red is bot, blue is human (Level 1 bot)
 choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 1, DiagonalRule), Move) :-
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Moves),
-    random_member(Move, Moves), 
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 1, DiagonalRule), Moves), % Get valid moves for the bot.
+    random_member(Move, Moves), % Selects a random valid move for the bot.
     display_bot_move(Move, Player), !.
 
-
-
-% Blue é bot level 2 mas red é human
+% Blue is bot level 2, red is human
 choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Move) :-
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Moves),
-    bot_move(gameState(BoardSize, Board, Player, h_pc, human, bot, 2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move, Player),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Moves), % Get valid moves for the bot.
+    bot_move(gameState(BoardSize, Board, Player, h_pc, human, bot, 2, DiagonalRule), Move),  % Chooses the best move for the bot using a greedy strategy.
+    display_bot_move(Move, Player),  
+    !.  
 
-% Red é bot level 2 mas blue é human
+% Red is bot level 2, blue is human
 choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 2, DiagonalRule), Move) :-
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Moves),
-    bot_move(gameState(BoardSize, Board, Player, h_pc, bot, human, 2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move, Player),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 2, DiagonalRule), Moves), % Get valid moves for the bot.
+    bot_move(gameState(BoardSize, Board, Player, h_pc, bot, human, 2, DiagonalRule), Move),  % Chooses the best move for the bot using a greedy strategy.
+    display_bot_move(Move, Player),  
+    !.  
 
-
-
-% Bot vs Bot (necessário devido à forma como está implementado o LevelRed-LevelBlue)
-
+% Bot vs Bot (Level 1)
 choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 1-LevelBlue, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 1-LevelBlue, DiagonalRule), Moves),  % Obtém os movimentos válidos
-    random_member(Move, Moves),  % Seleciona aleatoriamente um movimento válido
-    display_bot_move(Move, red),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 1-LevelBlue, DiagonalRule), Moves), % Get valid moves for the bot.
+    random_member(Move, Moves),  % Selects a random valid move for the red bot.
+    display_bot_move(Move, red),  
+    !.  
 
 choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-1, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-1, DiagonalRule), Moves),  % Obtém os movimentos válidos
-    random_member(Move, Moves),  % Seleciona aleatoriamente um movimento válido
-    display_bot_move(Move, blue),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-1, DiagonalRule), Moves), % Get valid moves for the bot.
+    random_member(Move, Moves),  % Selects a random valid move for the blue bot.
+    display_bot_move(Move, blue),  
+    !.  
 
-% Bot vs Bot (red) - Nível 2 
+% Bot vs Bot (Level 2)
 choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Moves),  % Obtém os movimentos válidos
-    bot_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move, red),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
-
-% Bot vs Bot (blue) - Nível 2 
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Moves), % Get valid moves for the bot.
+    bot_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 2-LevelBlue, DiagonalRule), Move), % Chooses the best move for the bot using a greedy strategy.
+    display_bot_move(Move, red),  
+    !.  
+% 
 choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Moves),  % Obtém os movimentos válidos
-    bot_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Move),  % Usa a função bot_move para escolher o melhor movimento
-    display_bot_move(Move, blue),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Moves), % Get valid moves for the bot.
+    bot_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-2, DiagonalRule), Move),  % Chooses the best move for the bot using a greedy strategy.
+    display_bot_move(Move, blue),  
+    !.  
 
-% Bot vs Bot (red) - Nível 3
+% Bot vs Bot (Level 3)
 choose_move(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule), Moves),
-    calculate_depth(Moves,Depth),
-    minimax(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule),Depth,red,BestValue,Move),
-    display_bot_move(Move, red),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule), Moves), % Get valid moves for the bot.
+    calculate_depth(Moves,Depth), % Calculates the depth based on moves length for minimax.
+    minimax(gameState(BoardSize, Board, red, pc_pc, bot, bot, 3-LevelBlue, DiagonalRule),Depth,red,BestValue,Move), % Chooses the best move for the red bot using minimax strategy.
+    display_bot_move(Move, red),  
+    !.  
 
-% Bot vs Bot (blue) - Nível 3 
+
 choose_move(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule), Moves),
-    calculate_depth(Moves,Depth),
-    minimax(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule),Depth,blue,BestValue,Move),
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule), Moves), % Get valid moves for the bot.
+    calculate_depth(Moves,Depth), % Calculates the depth based on moves length for minimax.
+    minimax(gameState(BoardSize, Board, blue, pc_pc, bot, bot, LevelRed-3, DiagonalRule),Depth,blue,BestValue,Move), % Chooses the best move for the blue bot using minimax strategy.
     display_bot_move(Move, blue),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    !.  
 
 
-% Blue é bot level 3 mas red é human
+% Blue is bot level 3, red is human
 choose_move(gameState(BoardSize, Board, Player, GameType, RedType, bot, 3, DiagonalRule), Move) :-
-    repeat,  % Inicia a repetição até um movimento válido
-    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 3, DiagonalRule), Moves),
-    calculate_depth(Moves,Depth),
-    minimax(gameState(BoardSize, Board, blue, h_pc, human, bot, 3, DiagonalRule),Depth,blue,BestValue,Move),
+    repeat,  
+    valid_moves(gameState(BoardSize, Board, Player, GameType, RedType, bot, 3, DiagonalRule), Moves), % Get valid moves for the bot.
+    calculate_depth(Moves,Depth), % Calculates the depth based on moves length for minimax.
+    minimax(gameState(BoardSize, Board, blue, h_pc, human, bot, 3, DiagonalRule),Depth,blue,BestValue,Move), % Chooses the best move for the blue bot using minimax strategy.
     display_bot_move(Move, Player),  % Exibe o movimento do bot
-    !.  % Interrompe a repetição quando o movimento for feito
+    !.  
 
+% Red is bot level 3, blue is human
+choose_move(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 3, DiagonalRule), Move) :-
+    repeat,   
+    valid_moves(gameState(BoardSize, Board, Player, GameType, bot, BlueType, 3, DiagonalRule), Moves), % Get valid moves for the bot.
+    calculate_depth(Moves,Depth), % Calculates the depth based on moves length for minimax.
+    minimax(gameState(BoardSize, Board, red, pc_h, human, bot, 3, DiagonalRule),Depth,red,BestValue,Move), % Chooses the best move for the red bot using minimax strategy.
+    display_bot_move(Move, Player),  % Exibe o movimento do bot
+    !.  
 
+/*
+* Adjusts the search depth based on the number of valid moves:
+* calculate_depth(+ValidMoves, -Depth)
+* ValidMoves: A list of all valid moves for the current player.
+* Depth: The depth level for decision-making algorithms, determined dynamically.
+* Strategy: This predicate calculates the depth level based on the number of valid moves.
+* Fewer valid moves lead to deeper search levels to ensure better decision-making in critical scenarios.
+*/
 % Função que ajusta a profundidade de acordo com o número de movimentos válidos
 calculate_depth(ValidMoves, Depth) :-
     length(ValidMoves, NumMoves),
-    write(NumMoves),nl,
-    depth_for_moves(NumMoves, Depth),
-    write(Depth).
+    depth_for_moves(NumMoves, Depth).
 
 % Mapeamento direto de movimentos válidos para profundidade
 depth_for_moves(NumMoves, Depth) :-
@@ -257,7 +285,6 @@ update_size(Size, TargetPiece, TargetSize, NewSize) :-
     NewSize is Size + TargetSize.
 
 
-% Função para obter o movimento do jogador
 get_move(Player, NewMove) :-
     write(Player),
     write(', choose your move (ColI-RowI,ColF-RowF): '), nl,
