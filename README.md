@@ -17,29 +17,36 @@ Anaash is a two-player abstract strategy game created by Mark Steere in February
 The goal of the game is to capture all enemy checkers. Draws are not possible.
 
 ### Gameplay
-Players alternate turns, starting with Red. During their turn, players can make one move using one of their stacks. If a player cannot make a valid move, they must skip their turn and wait until a move becomes available. At least one player will always have a move available at any point in the game.
+Players alternate turns, starting with Red. During their turn, players can make one move using one of their stacks. If a player cannot make a valid move, they must skip their turn. At least one player will always have a move available at any point in the game. The goal is to capture all the opponent's pieces or to ensure that all remaining pieces belong to a single player.
 
 ### Types of Moves
-#### 1. Positional Moves:
+#### Positional Moves:
 - A stack is moved orthogonally (horizontally or vertically) to an adjacent unoccupied square.
 - The move must reduce the Manhattan distance to the stack's nearest neighbor, regardless of color or height.
 - Only stacks with no orthogonal neighbors are eligible for positional moves.
 
-#### 2. Stacking Moves:
+#### Stacking Moves:
 - A stack is moved onto an orthogonally adjacent friendly stack of equal or greater height.
+- The resulting stack's size is the sum of the two stacks.
 
-#### 3. Capturing Moves:
+#### Capturing Moves:
 - A stack captures an orthogonally adjacent enemy stack of equal or smaller height.
+- The capturing stack's size increases by adding the captured stack's size.
 
-### Notable Rules
-- The game always progresses towards one player capturing all the opponent's pieces, making it a deterministic game with no chance of ties.
-- The name "Anaash" originates from the Mongolian word for giraffe.
+### Notable Rules:
+- The game always progresses towards one player capturing all the opponent's pieces, making it deterministic with no chance of ties.
+- If a player has no valid moves, they must skip their turn.
+- An optional rule allows diagonal moves (one per player per turn), which can be enabled during game setup.
+- The game ends when:
+    - All remaining pieces belong to one player.
+    - Only two stacks remain, and the winner is the player with the largest stack.
 
-### References
+#### References
 - Game rules source:[ Mark Steere's official rule sheet](https://www.marksteeregames.com/Anaash_rules.pdf)
 - Author's website: [marksteeregames.com](http://marksteeregames.com/)
 
-● Considerations for game extensions: describe the considerations taken into account when extending the game design, namely when considering variable-sized boards, optional rules (e.g., simplified rules for novice players, additional rules for expert players), and other aspects.
+### Considerations for game extensions
+Our game has 3 different board sizes, such as 4x4, 6x6 and 8x8, and in the 3 different sizes, there are no additional considerations to take into account during the game. The size of the board does not change the way you play. In addition, we have implemented an optional rule in which all players have the chance to play once diagonally. There is no variety of rules when it comes to the players' gaming experience.
 
 ● Game Logic: Describe the main design decisions regarding the implementation of the game logic in Prolog (do not copy the source code). This section should have information on the following topics, among others:
 
