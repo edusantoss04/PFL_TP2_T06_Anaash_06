@@ -748,3 +748,9 @@ valid_positional_movement(ToRow-ToCol, FromRow-FromCol, Stacks) :-
             NewDistances),
     my_min_list(NewDistances, NewDistance),
     NewDistance < CurrentDistance.
+
+
+
+final_state:-
+    display_game(gameState(4,[[empty, empty, empty, empty],[empty, blue-3, empty, empty],[empty, empty, empty, empty],[empty, red-10, empty, empty]], red, h_h, human, human, 0, [0,0])),
+    game_cycle(gameState(4,[[empty, empty, empty, empty],[empty, blue-3, empty, empty],[empty, empty, empty, empty],[empty, red-10, empty, empty]], red, h_h, human, human, 0, [0,0])).
