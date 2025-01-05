@@ -51,19 +51,101 @@ Players alternate turns, starting with Red. During their turn, players can make 
 Our game has 3 different board sizes, such as 4x4, 6x6 and 8x8, and in the 3 different sizes, there are no additional considerations to take into account during the game. The size of the board does not change the way you play. In addition, we have implemented an optional rule in which all players have the chance to play once diagonally. There is no variety of rules when it comes to the players' gaming experience.
 
 ### Game Logic
-Describe the main design decisions regarding the implementation of the game logic in Prolog (do not copy the source code). This section should have information on the following topics, among others:
 
 #### Game Configuration Representation
-describe the information required to represent the game configuration, how it is represented internally and how it is used by the initial_state/2 predicate.
-  
-#### Internal Game State Representation
-describe the information required to represent the game state, how it is represented internally, including an indication of the meaning of each atom (i.e. how different pieces are represented). Include examples of representations of initial, intermediate, and final game states.
-  
-#### Move Representation
-describe the information required to represent a move, and how it is represented internally (e.g., the coordinates of a board location, and/or other information necessary to represent a move) and how it is used by the move/3 predicate.
+The game configuration represents the initial settings required to set up the game before it starts. This includes:
+1. Game Type (GameType): Indicates whether the game is Human vs Human (h_h), Human vs Bot (h_pc), Bot vs Human (pc_h), or Bot vs Bot (pc_pc).
+   - Example: h_pc means a human player will play against a bot.
+2. Board Size (BoardSize): The size of the board, which can be 4x4, 6x6, or 8x8.
+    - Example: 6 represents a 6x6 board.
+3. Difficulty (Difficulty): Represents the difficulty level for bots, which can be easy, medium, or hard. For Bot vs Bot games, it includes separate difficulties for each bot (e.g., easy-hard).
+4. Diagonal Rule (DiagonalRule): Indicates whether diagonal moves are allowed ([1, 1]) or not ([0, 0]).
 
-#### User Interaction
-briefly describe the game menu system, as well as how interaction with the user is performed, focusing on input validation (e.g., when reading a move).
+#### Internal Representation
+The configuration is represented as a tuple: (GameType, BoardSize, Difficulty, DiagonalRule)
+- Example: (h_pc, 6, easy, [0, 0])
+
+##### Usage by initial_state/2
+The initial_state/2 predicate uses the game configuration to initialize the game state:
+1. It generates the board using the board(BoardSize, Board) predicate from board.pl.
+2. It maps the game type and difficulty to their internal representations using map_game_type and map_difficulty.
+3. The initialized state (gameState) includes the board, the first player (red), and other settings derived from the configuration.
+
+### Internal Game State Representation
+The game state represents the current state of the game during gameplay. It includes:
+1. Board Size (BoardSize): The dimensions of the board.
+2. Board (Board): A list of lists representing the current state of the board. Each cell contains:
+   - empty: Indicates an empty cell.
+    - Color-Size: Represents a piece, where Color is either red or blue, and Size is the stack size.
+    - Example of an initial 4x4 board:
+[[blue-1, red-1, blue-1, red-1],
+ [red-1, blue-1, red-1, blue-1],
+ [blue-1, red-1, blue-1, red-1],
+ [red-1, blue-1, red-1, blue-1]]
+3. Player (Player): The current player (red or blue).
+4. Game Type (GameType): Indicates whether it's Human vs Human, Human vs Bot, etc.
+5. Player Types (RedType, BlueType): Indicates whether each player is a human (human) or a bot (bot).
+6. Bot Levels (Level): Represents the difficulty levels for bots.
+7. Diagonal Rule (DiagonalRule): Indicates whether diagonal moves are allowed.
+
+##### Examples
+- Initial State:
+gameState(4, [[blue-1, red-1, blue-1, red-1],
+              [red-1, blue-1, red-1, blue-1],
+              [blue-1, red-1, blue-1, red-1],
+              [red-1, blue-1, red-1, blue-1]],
+         red, h_h, human, human, 0, [0, 0])
+  
+- Intermediate State (after some moves):
+gameState(4, [[blue-2, red-1, empty, empty],
+              [empty, blue-1, red-1, blue-1],
+              [blue-1, red-1, blue-1, red-1],
+              [red-1, blue-1, empty, red-1]],
+         blue, h_pc, human, bot, 1, [0, 0])
+  
+- Final State (Blue wins):
+gameState(4, [[empty, empty, empty, empty],
+              [empty, empty, empty, empty],
+              [empty, blue-5, empty, empty],
+              [empty, empty, empty, empty]],
+         red, h_h, human, human, 0, [0, 0])
+  
+### Move Representation
+A move in the game is represented as a pair of coordinates indicating the starting and ending positions: (RowStart-ColStart, RowEnd-ColEnd)
+- RowStart-ColStart: The starting position of the piece.
+- RowEnd-ColEnd: The destination position.
+##### Example
+- A move from (1, 1) to (2, 2) is represented as: (1-1, 2-2)
+
+##### Usage by move/3
+1. The move/3 predicate takes:
+   - The current game state (GameState).
+    - The move to be executed (Move).
+    - The resulting game state after the move (NewGameState).
+2. It performs the following:
+    - Validates the move using valid_move.
+    - Updates the board by moving, stacking, or capturing pieces.
+    - Changes the current player (next_player).
+
+### User Interaction
+##### Game Menu System
+The menu system, implemented in menu.pl, guides the user through the configuration process:
+1. Game Type: Players choose the mode of the game (e.g., Human vs Bot).
+2. Board Size: Players select the size of the board (4x4, 6x6, or 8x8).
+3. Difficulty: Players configure the difficulty level for bots.
+4. Diagonal Rule: Players enable or disable diagonal moves.
+
+##### Input Validation
+1. Input validation is handled using utility predicates such as:
+    - read_menu_option: Ensures input is within valid menu options.
+    - read_number: Reads and validates numerical input.
+    - Example: Choosing a difficulty level ensures the input is within the range [1, 3].
+2. Move Input:
+    - The get_move predicate prompts players for moves, ensuring the input follows the correct format (RowStart-ColStart, RowEnd-ColEnd).
+    - Invalid moves are rejected, and the player is prompted again:
+"?- get_move(red, Move).
+Red, choose your move (ColI-RowI,ColF-RowF):
+Invalid input. Please try again."
 
 ### Conclusions
 Looking at all the work that has been done, we realise that if we had more time to work on this project, we would have implemented the optional rule in which players have the possibility of playing once diagonally not only for human players, but also for bots.
