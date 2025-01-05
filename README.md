@@ -3,9 +3,9 @@
 The game we chose was Anaash.
 
 ### Group and Contributions
-- Eduardo Narciso Rodrigues Santos, up202207521 - 37.5% (
-- Pedro dos Santos Sousa Pedro, up202206961 - 37.5% (
-- Renata Soares Bandeira Simão, up202205124 - 25% (menu.pl e README)
+- Eduardo Narciso Rodrigues Santos, up202207521 - 37.5% (minimax algorithm, greedy algorithm, display game and game cycle)
+- Pedro dos Santos Sousa Pedro, up202206961 - 37.5% (move, valid moves and move validations, display game and game cycle)
+- Renata Soares Bandeira Simão, up202205124 - 25% (menu, board representation and README)
 
 ### Installation and Execution
 Execute o comando 'sicstus -l game.pl' e inicie o jogo com 'play.'.
@@ -164,3 +164,4 @@ If we had more time, we would have implemented diagonal moves for bots to enhanc
 - [Geeks for geeks - minimax algorithm](https://www.geeksforgeeks.org/minimax-algorithm-in-game-theory-set-1-introduction/)
 - [Video - minimax algortihm](https://www.youtube.com/watch?v=l-hh51ncgDI)
 - [SICStus Manual](https://sicstus.sics.se/sicstus/docs/latest4/pdf/sicstus.pdf)
+- ChatGPT: minimax algorithm and general issues
