@@ -24,7 +24,7 @@ read_until_between(Min, Max, Value) :-
     between(Min, Max, Value),                
     !.                                     
 
-% Auxiliary function to obtain the target cell's content
+% Auxiliary function to obtain the target cell s content
 get_target_piece(ToOldRow, ToCol, TargetPiece, TargetSize) :-
     nth0(ToCol, ToOldRow, TargetPiece-TargetSize), !.  % If the cell is not empty
 get_target_piece(_, _, empty, 0).  % If the cell is empty
@@ -65,7 +65,7 @@ print_color(empty) :-
 
 % Function to reset the color after printing the cell
 reset_color :-
-    write('\e[0m').  % Reset to the terminal's default color
+    write('\e[0m').  % Reset to the terminals default color
 
 display_bot_move((Row-Col, ToRow-ToCol), Bot):-
     NewRow is Row + 1,
