@@ -2,15 +2,13 @@
 
 The game we chose was Anaash.
 
-### Group and Contributions: (falta escrever as contribuições e decrição)
-indication of the contribution (in percentages, adding up to 100%, and a brief description of tasks performed) of each member of the group to the assignment.
-- Eduardo Narciso Rodrigues Santos, up202207521
-- Pedro dos Santos Sousa Pedro, up202206961
-- Renata Soares Bandeira Simão, up202205124
+### Group and Contributions
+- Eduardo Narciso Rodrigues Santos, up202207521 - 37.5% (
+- Pedro dos Santos Sousa Pedro, up202206961 - 37.5% (
+- Renata Soares Bandeira Simão, up202205124 - 25% (menu.pl e README)
 
 ### Installation and Execution
-1. sicstus -l game.pl
-2. play.
+Execute o comando 'sicstus -l game.pl' e inicie o jogo com 'play.'.
 
 ### Description of Anaash
 Anaash is a two-player abstract strategy game created by Mark Steere in February 2021. It is played on a 6x6, 8x8, or larger checkerboard, which starts fully populated with a checkered pattern of red and blue checkers. Each checker stack consists of one piece, known as a "singleton." Players take turns moving and combining stacks, aiming to outmaneuver their opponent through strategic positioning and control of the board.
@@ -19,7 +17,7 @@ Anaash is a two-player abstract strategy game created by Mark Steere in February
 The goal of the game is to capture all enemy checkers. Draws are not possible.
 
 ### Gameplay
-Players alternate turns, starting with Red. During their turn, players can make one move using one of their stacks. If a player cannot make a valid move, they must skip their turn. At least one player will always have a move available at any point in the game. The goal is to capture all the opponent's pieces or to ensure that all remaining pieces belong to a single player.
+Players alternate turns, starting with Red, making one move per turn. If no valid move exists, the player skips their turn. The goal is to capture all opponent's pieces or have all remaining pieces belong to one player.
 
 ### Types of Moves
 #### Positional Moves:
@@ -147,8 +145,17 @@ The menu system, implemented in menu.pl, guides the user through the configurati
 Red, choose your move (ColI-RowI,ColF-RowF):
 Invalid input. Please try again."
 
+### Additional Work - Minimax algorithm (third level of AI)
+We implemented the Minimax algorithm to predict the best move for the current player by simulating all possible moves and their outcomes. It first checks if the game is over or if the search depth has reached zero. If so, it evaluates the current game state using minimax_value/2, which calculates a score based on the total stack sizes of both players, using count_pieces/3. For each valid move, it simulates the result with simulate_move1/3 and recursively evaluates the opponent’s best response. The score for each move combines this recursive evaluation with a heuristic (evaluate_move/4) to prioritize moves like captures and stackings. Finally, it selects the best move using select_best/3, maximizing scores for red and minimizing for blue, with ties broken randomly. This allows the AI to play strategically, optimizing its decisions through a balance of depth exploration and heuristic evaluation.
+
+### Images ilustrating the game
+![Início do jogo](images/inicio_do_jogo.png) Image 1: Initial game state
+![Intermediário](images/intermediario.png) Image 2: Intermediate game state
+![Fim do jogo](images/fim_do_jogo.png) Image 3: Final game state
+![Interação com o jogo](images/interação.png) Image 4: Interaction with the game
+
 ### Conclusions
-Looking at all the work that has been done, we realise that if we had more time to work on this project, we would have implemented the optional rule in which players have the possibility of playing once diagonally not only for human players, but also for bots.
+If we had more time, we would have implemented diagonal moves for bots to enhance consistency and optimized the game's performance by using tail recursion to reduce computational complexity and improve efficiency.
 
 ### Bibliography
 - Game rules source:[ Mark Steere's official rule sheet](https://www.marksteeregames.com/Anaash_rules.pdf)
