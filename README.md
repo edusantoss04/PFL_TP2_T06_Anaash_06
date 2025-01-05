@@ -1,6 +1,6 @@
 # PFL_TP2_T06_Anaash_06
 
-The game we choose was Anaash.
+The game we chose was Anaash.
 
 ### Group and Contributions: (falta escrever as contribuições e decrição)
 indication of the contribution (in percentages, adding up to 100%, and a brief description of tasks performed) of each member of the group to the assignment.
